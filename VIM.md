@@ -275,3 +275,6 @@ p
 Swap two lines
 ddp
 
+Delete from here to end of file
+:,$d
+
