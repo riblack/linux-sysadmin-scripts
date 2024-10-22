@@ -1,12 +1,21 @@
 # Vim Notes
 
+## Sed Note
+
 Note: tldr; As a sysadmin I use s,,, for my sed commands instead of s///
-If I were grading English papers then I would certainly use s/// for my sed commands, but the "/" gets in the way of actual sysadmin work (you know, pathnames and much more), so another sed delimiter must be chosen. Since I'm not using sed on English papers then my likelyhood of encoutering a comma (,) is way less than a slash (/), sure there are the occasional commas, but by and large by choosing a comma as my sed delimeter then my life as a sysadmin is a lot easier. I don't know why every sed example out there is listed with slashes (s///) but oh well. A sysadmin worth his (or her) salt is going to be using s,,, instead of s///. So don't be confused if you see my sed commands with commas instead of slashes, ex: s,replace this,with that,  Now that I've written up this note I can go back to using s,,, as is my normal instead of rewriting every sed attempt as s///.
+
+If I were grading English papers then I would certainly use s/// for my sed commands, but the "/" gets in the way of actual sysadmin work (you know, pathnames and much more), so another sed delimiter must be chosen. Since I'm not using sed on English papers then my likelyhood of encoutering a comma (,) is way less than a slash (/), sure there are the occasional commas, but by and large by choosing a comma as my sed delimeter then my life as a sysadmin is a lot easier. I don't know why every sed example out there is listed with slashes (s///) but oh well. A sysadmin worth his (or her) salt is going to be using s,,, instead of s///. So don't be confused if you see my sed commands with commas instead of slashes, example: s,replace this,with that,  Now that I've written up this note I can go back to using s,,, as is my normal instead of rewriting every sed attempt as s///.
+
+## Vim Thoughts
 
 Yes, there are a lot of vim cheat sheets out there. This here is a subset of the vim commands that I know from (generally) most used to least used. One doesn't need to be a master to get a lot of use out of vim. With this knowledge I work with vim pretty well, I hope it helps you as well.
 
+## Permanent Changes vs Non
+
 Changes from within vim are not (not usually) permanent, so feel free to try all the commands here.
 Permanent vim changes are specified in ~/.vimrc.
+
+## Help for Oops
 
 Before we go too far let's cover how to get out in case you mess up:
 
@@ -18,6 +27,8 @@ If you are stuck, then maybe you are in an insert mode (you should see "-- INSER
 
 If you are still stuck, then maybe you are busy recording a macro (you should see "Recording @..." in the lower left line), press q and "Recording @..." should go away, then you can exit with :q
 
+## Saving Changes
+
 And in case you actually want to save something, then here is how to save (write):
 
 :w 	save changes
@@ -25,20 +36,35 @@ And in case you actually want to save something, then here is how to save (write
 
 Note: Please be careful with the force (!) operator. If I catch you using combinations with force (!) as common practice then please know this, I will find you.
 
+## Read Only Mode
+
 Vim Read Only Mode
 
 Also worth noting is that vim has a "read only" mode if you want to use vim features (line numbers, !grep, etc) but don't want to risk damaging a file. I love using the vim editor to look at things because the interface is familiar and I have access to tools such as grep, sed, awk, sort, uniq, etc. I make sure to use -R (read only mode) when looking at files I don't intend to make a change to - as a sysadmin this also shows to anyone looking at my history that I'm just looking and not touching:
 
 vim -R 	Open the file(s) as read only. Example: vim -R README.txt
 
-Commands
-
-There are a lot of actions that can be performed, including internal commands and external commands. Often you begin by specifying the lines to operate on. I know of three choices 1) % all lines, 2) visual selection using one of the v keystrokes, or 3) specifying a range via line numbers.
-
-Note - Line Numbers:
+## Note - Line Numbers
 
 :set nu 	turn on line numbers
 :set nonu 	turn off line numbers
+
+## Note - Unhighlight Items
+
+:nohls 	unhighlight items due to your last search (or sed command)
+:set nohls 	turn off highlighting (this session only - not permanent)
+:set hls 	turn on highlighting (this session only - not permanent)
+
+## Note - Undo and Redo
+
+u 		undo previous actions
+ctrl + r 	redo previous undo
+
+## Vim Commands and Specifying Content
+
+There are a lot of actions that can be performed, including internal commands and external commands. Often you begin by specifying the lines to operate on. I know of three choices 1) % all lines, 2) visual selection using one of the v keystrokes, or 3) specifying a range via line numbers.
+
+### Visually Specify Content
 
 If you will be visually selecting content then begin with one of the v keys, then begin command mode (:)
 
@@ -47,6 +73,8 @@ shift + v 	select by lines
 ctrl + v 	select a block
 
 : 	to begin command mode
+
+### Using Ranges to Specify Content
 
 If you will be using all lines (%) or a range of lines then begin with starting command mode (:), then give the range:
 
@@ -59,6 +87,8 @@ i.e.
 :,$ 	specify from this line (including ths line) to the end of the file
 :5,30 	specify lines 5 through 30 (inclusive)
 
+### Giving a Command
+
 Once you are done specifying the lines (whether visually or by range) and entered command mode (:), then give a command:
 
 Two such command examples are internal sed and external sed:
@@ -67,11 +97,7 @@ s 	internal sed command
 !sed 	external sed command
 !grep 	external grep command
 
-Note - unhighlight items:
-
-:nohls 	unhighlight items due to your last search (or sed command)
-:set nohls 	turn off highlighting (this session only - not permanent)
-:set hls 	turn on highlighting (this session only - not permanent)
+### Command Examples
 
 Some examples could look like the following:
 
@@ -79,6 +105,8 @@ Some examples could look like the following:
 :,$!sed -e 's/^/THIS IS REALLY COOL: /'
 :%!grep .
 :8,10!grep .
+
+### Visual Selection Commands and Repeating the last Selection
 
 Visual selection and command will look differently because it automatically specifies the visual range as :'<,'> once you enter command mode. So just carry on as normal:
 :'<,'>
@@ -92,18 +120,15 @@ shift +v and select some lines
 : (up) (enter) 	to repeat the last one without re-specifying the range again
 : (up) (enter) 	to repeat the last one without re-specifying the range again
 
-Note - undo and redo:
+### Example of Internal Command
 
-u 		undo previous actions
-ctrl + r 	redo previous undo
-
-More examples of internal command would be:
 :1,s/^/THIS IS COOL: /
 
-An example external command would be:
+### Example of External Command
+
 :,$!sed -e 's/^/THIS IS REALLY COOL: /'
 
-An example run wich will filter out blank lines
+### Example to Filter Out Blank Lines
 
 1) shift + v to begin highlighting lines
 2) move cursor to highlight desired lines
@@ -112,17 +137,20 @@ An example run wich will filter out blank lines
 5) grep . to keep lines with content and get rid of blank lines, so in all:
 :!grep .
 
-Have bash reformat a function for you (see the example to highlight lines)
+### Bash to Reformat Bash Code for You
+
+The you can have Bash reformat your function by using declare -f MyFunctionName
 
 1) After your function definition add "declare -f yourfunctionname"
-2) Use shift + v to highlight your function as well as the declare -f myfunc
+2) Use shift + v to highlight your function as well as the declare -f myfunc statement
 3) have Bash perform this reformat with :!bash
+
 In all it would look like the following:
-(add declare -f thisismyfunction just after your function definition)
+(add declare -f ThisIsMyFunction just after your function definition)
 shfit + v, highlight all of your function including the declare -f line, 
 :!bash, success. Warning: this "declare -f xyz" process deletes comments.
 
-common task - add a variable to the middle of a line
+### Common task - add a variable to the middle of a line
 go find the variable you need to add in either from a previous use or from its definition
 i.e. "${mycoolvariable}" or mycoolvariable
 delete and undelete the variable from its original location with something like any of:
@@ -136,8 +164,6 @@ p to paste in the variable that you brought
 k to go up to the first of the 3 lines,
 J (or gJ) to join these two lines, and again to join lines 2 and 3.
 or can do 3J or 3gJ to do all 3 lines with (or without) spaces
-
-swap two lines with: ddp
 
 ~ 		on a character to toggle case
 cw 		to "change word" from cursor to end of word
@@ -245,4 +271,7 @@ vim file1 file2
 yy
 :n
 p
+
+Swap two lines
+ddp
 
