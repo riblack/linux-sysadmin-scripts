@@ -240,3 +240,9 @@ Let's say you want to pull in stuff from ls, or ls and grep, from within vim:
 :r!ls /path/to/dir
 :r!ls /path/to/dir | grep mysearchstring
 
+Open two files and then can yyp from one file to the other
+vim file1 file2
+yy
+:n
+p
+
