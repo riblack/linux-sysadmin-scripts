@@ -1,4 +1,4 @@
-# Some Git Notes
+# Git Notes
 
 git status
 see where we are at
