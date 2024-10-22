@@ -5,7 +5,10 @@ git status
 see where we are at
 
 git diff
-get a diff of the changed files that are tracked (i.e. skips files that are not yet added/tracked).
+to get a diff of the changed files that are tracked (i.e. skips files that are not yet added/tracked).
+
+git diff main
+to get a diff if you have already performed a "git add" and are getting nothing from "git diff"
 
 git pull
 which is a combination of:

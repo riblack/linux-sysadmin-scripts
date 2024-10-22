@@ -15,21 +15,24 @@ git_commit ()
     git status;
     read -p "Pausing for a moment for you to read the above status before pulling." pause;
     git pull;
+    read -p "Git pull complete." pause;
     git status;
     read -p "Pausing for a moment for you to read the above status before adding files next." pause;
     git add $file_list;
+    read -p "git add complete." pause;
     git status;
     read -p "Enter your commit message: " commit_message;
     read -p "Pausing for a moment for you to read the above status before comitting next." pause;
     git commit -m "${commit_message}";
-    read -p "Finished with git commit." pause;
+    read -p "git commit complete." pause;
     git status;
     read -p "Pausing for a moment for you to read the above status before pushing." pause;
     git push;
-    read -p "Finished with git push." pause;
+    read -p "git push complete." pause;
     git status;
     read -p "Pausing for a moment for you to read the above status before pulling." pause;
     git pull;
+    read -p "git pull complete." pause;
     git status;
     read -p "Pausing for a moment for you to read the above status before returning." pause
 }
