@@ -17,11 +17,12 @@ git_commit ()
     git pull;
     read -p "Git pull complete. (enter to continue)" pause;
     git status;
-    read -p "Pausing for a moment for you to read the above status before adding files next. (enter to continue)" pause;
+    read -p "Pausing for a moment for you to read the above status before asking you for your commit message. (enter to continue)" pause;
+    read -p "Enter your commit message: " commit_message;
+    read -p "Thank you for your commit message. Proceeding to add files next.  (enter to continue)" pause;
     git add $file_list;
     read -p "git add complete. (enter to continue)" pause;
     git status;
-    read -p "Enter your commit message: " commit_message;
     read -p "Pausing for a moment for you to read the above status before comitting next. (enter to continue)" pause;
     git commit -m "${commit_message}";
     read -p "git commit complete. (enter to continue)" pause;
