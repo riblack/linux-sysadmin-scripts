@@ -19,9 +19,11 @@ git_commit ()
     read -p "Enter your commit message: " commit_message;
     read -p "Pausing for a moment for you to read the above status before comitting next." pause;
     git commit -m "${commit_message}";
+    read -p "Finished with git commit." pause;
     git status;
     read -p "Pausing for a moment for you to read the above status before pushing." pause;
     git push;
+    read -p "Finished with git push." pause;
     git status;
     read -p "Pausing for a moment for you to read the above status before pulling." pause;
     git pull;

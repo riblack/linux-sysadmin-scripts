@@ -14,7 +14,7 @@ myfunc ()
     :
 }
 declare -f myfunc
-myfunc
+myfunc "$@"
 
 When the script runs then the "cleaned up" function declaration is printed on screen due to the "declare -f myfunc" line.
 
