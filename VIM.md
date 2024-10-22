@@ -235,3 +235,8 @@ S 	delete this entire line and enter insert mode
 
 U 	undo all edits on this single line
 
+Let's say you want to pull in stuff from ls, or ls and grep, from within vim:
+
+:r!ls /path/to/dir
+:r!ls /path/to/dir | grep mysearchstring
+
