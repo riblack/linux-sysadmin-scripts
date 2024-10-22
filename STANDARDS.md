@@ -1,5 +1,4 @@
-# linux-sysadmin-scripts
-Standards to be used in these scripts
+# Standards to be used in these scripts
 
 Script file name is the name of the function.sh.
 Specific headers and footers for the .sh file.

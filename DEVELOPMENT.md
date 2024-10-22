@@ -1,5 +1,4 @@
-# linux-sysadmin-scripts
-Script Development Tips
+# Script Development Tips
 
 When starting a new script I usually perform the following:
 

@@ -1,5 +1,4 @@
-# linux-sysadmin-scripts
-Some git details
+# Some Git Notes
 
 git status
 see where we are at
