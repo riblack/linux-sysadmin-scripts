@@ -278,3 +278,7 @@ ddp
 Delete from here to end of file
 :,$d
 
+Split a line into multiple lines by spaces
+shift + v :!tr ' ' '\n'
+
+
