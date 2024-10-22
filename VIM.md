@@ -281,4 +281,6 @@ Delete from here to end of file
 Split a line into multiple lines by spaces
 shift + v :!tr ' ' '\n'
 
+Add words to the beginning and end of each line
+shift + v :s,.*,BEGINNING & END,
 
