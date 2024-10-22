@@ -13,28 +13,28 @@ git_commit ()
     };
     file_list=$( while [[ -n "$1" ]]; do echo $1; shift; done );
     git status;
-    read -p "Pausing for a moment for you to read the above status before pulling." pause;
+    read -p "Pausing for a moment for you to read the above status before pulling. (enter to continue)" pause;
     git pull;
-    read -p "Git pull complete." pause;
+    read -p "Git pull complete. (enter to continue)" pause;
     git status;
-    read -p "Pausing for a moment for you to read the above status before adding files next." pause;
+    read -p "Pausing for a moment for you to read the above status before adding files next. (enter to continue)" pause;
     git add $file_list;
-    read -p "git add complete." pause;
+    read -p "git add complete. (enter to continue)" pause;
     git status;
     read -p "Enter your commit message: " commit_message;
-    read -p "Pausing for a moment for you to read the above status before comitting next." pause;
+    read -p "Pausing for a moment for you to read the above status before comitting next. (enter to continue)" pause;
     git commit -m "${commit_message}";
-    read -p "git commit complete." pause;
+    read -p "git commit complete. (enter to continue)" pause;
     git status;
-    read -p "Pausing for a moment for you to read the above status before pushing." pause;
+    read -p "Pausing for a moment for you to read the above status before pushing. (enter to continue)" pause;
     git push;
-    read -p "git push complete." pause;
+    read -p "git push complete. (enter to continue)" pause;
     git status;
-    read -p "Pausing for a moment for you to read the above status before pulling." pause;
+    read -p "Pausing for a moment for you to read the above status before pulling. (enter to continue)" pause;
     git pull;
-    read -p "git pull complete." pause;
+    read -p "git pull complete. (enter to continue)" pause;
     git status;
-    read -p "Pausing for a moment for you to read the above status before returning." pause
+    read -p "Pausing for a moment for you to read the above status before returning. (enter to continue)" pause
 }
 # declare -f git_commit
 git_commit "$@"
