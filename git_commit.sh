@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# FIXME: todo, need to parrot back which files we will be updating through this process
+# FIXME: possibly incorporate git diff, or at least ask if you want to see a diff
+
 unset -f git_commit
 git_commit () 
 { 
