@@ -149,6 +149,7 @@ In all it would look like the following:
 (add declare -f ThisIsMyFunction just after your function definition)
 shfit + v, highlight all of your function including the declare -f line, 
 :!bash, success. Warning: this "declare -f xyz" process deletes comments.
+Also it converts f() () to f() {} so be aware in case it's one of the times you actually want f() ().
 
 ### Common task - add a variable to the middle of a line
 go find the variable you need to add in either from a previous use or from its definition
