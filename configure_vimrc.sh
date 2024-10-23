@@ -6,6 +6,7 @@ configure_vimrc ()
     VIMRC_FILE=~/.vimrc;
     settings=$(cat <<'EOF' | sed -e 's,[ \t]*\#.*$,,' | grep .
 set hlsearch
+set number
 EOF
 );
     while read entry 0<&3; do
