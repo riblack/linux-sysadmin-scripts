@@ -199,7 +199,8 @@ $ 	jump to the end of this line
 dd 	delete a line (also places deleted contents into the buffer)
 D 	delete from cursor to end of line (also places deleted contents into the buffer)
 yy 	yank a line (places the yanked contents into the buffer)
-p 	paste contents from buffer
+p 	paste contents from buffer (after this line)
+P 	paste contents from buffer (above this line)
 b 	back (small)
 w 	forward (small)
 B 	back (big)
