@@ -306,3 +306,8 @@ Let's go ahead and roll out the next 38 that we wanted.
 
 Congratulations, you should now have 0 - 40 of these lines
 
+
+
+Global search and replace
+:%s,OLDNAME,NEWNAME,g
+
