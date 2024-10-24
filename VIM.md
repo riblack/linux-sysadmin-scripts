@@ -286,3 +286,23 @@ shift + v :!tr ' ' '\n'
 Add words to the beginning and end of each line
 shift + v :s,.*,BEGINNING & END,
 
+Let's record a macro and play it back.
+We'll start off with a line we want to perform work on:
+echo ${GROUP_CONDITIONS[0]}
+The end goal is to duplicate this line and increment the number, like so:
+echo ${GROUP_CONDITIONS[1]}
+So, with your cursor on that line carefully type in the following:
+qa	this will start recording into register "a"
+yyp	yank-yank-paste, this duplicates the line (and places your cursor on that next line)
+$	$ takes you to the end of the line
+bb	to go back "two" words to be on top of the 0
+ctrl+a	this increments the number your cursor is on, this will result in 0 becoming a 1
+q	this will stop recording
+
+Now to test, with your cursor anywhere on the line with "1" then press @ a to begin playback of macro "a"
+If you successfully get the next line (with "2") then we're good.
+Let's go ahead and roll out the next 38 that we wanted.
+38@a
+
+Congratulations, you should now have 0 - 40 of these lines
+
