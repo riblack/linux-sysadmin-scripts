@@ -6,3 +6,4 @@ cds ()
     [ -d "${SCRIPTS_DIR}" ] || echo mkdir -p "${SCRIPTS_DIR}";
     cd "${SCRIPTS_DIR}"
 }
+

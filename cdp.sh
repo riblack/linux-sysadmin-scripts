@@ -7,3 +7,4 @@ cdp ()
     [ -d "${LAST_PROJECT_DIR}" ] || echo mkdir -p "${LAST_PROJECT_DIR}";
     cd "${LAST_PROJECT_DIR}";
 }
+
