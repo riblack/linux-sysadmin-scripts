@@ -2,8 +2,8 @@
 
 ytdl () 
 { 
-    VIDEO_DIRECTORY=/data/videos
-    VIDEO_DOWNLOADER=$(command -v yt-dlp)
+    VIDEOS_BASE_DIRECTORY=/data/videos
+    VIDEO_DOWNLOADER_COMMAND=$(command -v yt-dlp)
 
     # Check if at least one argument is provided
     if [ $# -eq 0 ]; then
@@ -11,14 +11,12 @@ ytdl ()
         return 1
     fi
 
-    # Determine the name to return
+    # Determine the script name for logging purposes
     if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-        # Sourced: use the function name
-        script_name="${FUNCNAME[0]}"
+        script_name="${FUNCNAME[0]}"  # Sourced: use the function name
     else
-        # Not sourced: get the full path
-        script_path="${0%/*}"  # Get the directory part of the path
-        if [[ -z "${script_path}" ]]; then
+        script_path="${0%/*}"  # Not sourced: get the directory part of the path
+        if [ -z "${script_path}" ]; then
             script_path="."  # If no directory, use current directory
         fi
         script_name="$(cd "${script_path}" && pwd)/${0##*/}"  # Full path with script name
@@ -29,28 +27,28 @@ ytdl ()
         URL="$1"  # Get the first argument
         echo "Downloading video from: ${URL}"
 
-        # Extract the domain from the URL
+        # Extract the domain from the URL for organizing downloads
         DOMAIN=$(echo "${URL}" | awk -F[/:] '{print $4}')
-        DOMAIN_DIRECTORY="${VIDEO_DIRECTORY}/${DOMAIN}"
+        DOMAIN_VIDEOS_DIRECTORY="${VIDEOS_BASE_DIRECTORY}/${DOMAIN}"
 
         # Create the video domain subdirectory if it doesn't exist
-        [ -d "${DOMAIN_DIRECTORY}" ] || mkdir -p "${DOMAIN_DIRECTORY}"
+        [ -d "${DOMAIN_VIDEOS_DIRECTORY}" ] || mkdir -p "${DOMAIN_VIDEOS_DIRECTORY}" || {
+            echo "Error: Could not create directory: ${DOMAIN_VIDEOS_DIRECTORY}"
+            return 1
+        }
 
-        # Set a per domain log file
-        DOMAIN_DOWNLOAD_LOG="${DOMAIN_DIRECTORY%/}.log"
+        # Set a per-domain log file
+        DOMAIN_DOWNLOAD_LOG="${DOMAIN_VIDEOS_DIRECTORY%/}.log"
 
         (
-            cd "${DOMAIN_DIRECTORY}" || exit 1
+            cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
             DATESTAMP=$(date "+%Y-%m-%d %H:%M:%S %a")
             printf '[%s] [%s] [%s] %s\n' "${DATESTAMP}" "${script_name}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
-            ${VIDEO_DOWNLOADER} "${URL}" || echo "Failed to download: ${URL}"
+            ${VIDEO_DOWNLOADER_COMMAND} "${URL}" || echo "Failed to download: ${URL}"
         )
 
-        shift  # Shift the arguments to process the next one
+        shift  # Move to the next argument
     done
-
-    # Return the name of the function or script
-    echo "Called from: ${script_name}"
 }
 
 # Source the footer
