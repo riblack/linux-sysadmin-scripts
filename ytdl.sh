@@ -5,6 +5,29 @@ ytdl ()
     VIDEOS_BASE_DIRECTORY=/data/videos
     VIDEO_DOWNLOADER_COMMAND=$(command -v yt-dlp)
 
+    # Possible ffmpeg loglevels are numbers or:
+    # -v quiet
+    # -v panic
+    # -v fatal
+    # -v error
+    # -v warning
+    # -v info
+    # -v verbose	sufficient enough to catch -bitextract
+    # -v debug
+    # -v trace
+
+    VIDEO_DOWNLOADER_COMMAND_ARGS=()
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader" "http:ffmpeg")
+
+    # You must enable the above --downloader http:ffmpeg in order to use the following
+    # You must put all ffmpeg arguments into one line (else the last ffmpeg args wins)
+    # So, choose either one of the following, do not choose multiples:
+
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-bitexact") 			# ffmpeg -bitexact without verbose
+    # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v verbose -bitexact")	# ffmpeg -bitexact with verbose
+    # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v debug -bitexact")	# ffmpeg -bitexact with debug
+    # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v trace -bitexact")	# ffmpeg -bitexact with debug
+
     # Check if at least one argument is provided
     if [ $# -eq 0 ]; then
         echo "Error: No URLs provided. Please specify one or more URLs to download."
@@ -44,7 +67,7 @@ ytdl ()
             cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
             DATESTAMP=$(date "+%Y-%m-%d %H:%M:%S %a")
             printf '[%s] [%s] [%s] %s\n' "${DATESTAMP}" "${script_name}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
-            ${VIDEO_DOWNLOADER_COMMAND} "${URL}" || echo "Failed to download: ${URL}"
+            ${VIDEO_DOWNLOADER_COMMAND} -x -k --audio-format mp3 --audio-quality 192K --format mp4 "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
         )
 
         shift  # Move to the next argument
