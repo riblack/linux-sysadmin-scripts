@@ -1,0 +1,7 @@
+unset -f thisfunction
+thisfunction () 
+{ 
+    :
+}
+declare -f thisfunction
+thisfunction
