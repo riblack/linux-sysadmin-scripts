@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ytdl () 
 { 
@@ -47,13 +47,6 @@ ytdl ()
     echo "Called from: ${script_name}"
 }
 
-# Footer to check execution context
-# Extract the function name from the script name
-function_name="${0##*/}"     # Get the script name without path
-function_name="${function_name%.sh}"  # Remove the .sh extension
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    # If the script is being run directly, call the function with all arguments
-    "${function_name}" "$@"
-fi
+# Source the footer
+source bash_footer.template.live
 

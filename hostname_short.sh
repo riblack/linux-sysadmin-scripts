@@ -5,4 +5,6 @@ hostname_short ()
     python3 -c 'import os; hostname = os.uname().nodename; print(hostname)'
 }
 
-hostname_short "$@"
+# Source the footer
+source bash_footer.template.live
+

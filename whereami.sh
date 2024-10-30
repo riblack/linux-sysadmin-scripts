@@ -1,31 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-python3 -c 'import socket; fqdn = socket.getfqdn(); print(fqdn)'
-python3 -c 'import os; hostname = os.uname().nodename; print(hostname)'
+whereami () 
+{ 
 
-hostname
-hostname -s
-hostname -f
+    python3 -c 'import socket; fqdn = socket.getfqdn(); print(fqdn)'
+    python3 -c 'import os; hostname = os.uname().nodename; print(hostname)'
 
-dig "$HOSTNAME" -t any +noall +answer
-dig "$HOSTNAME" +search -t any +noall +answer
+    hostname
+    hostname -s
+    hostname -f
 
-echo "$HOSTNAME"
+    dig "$HOSTNAME" -t any +noall +answer
+    dig "$HOSTNAME" +search -t any +noall +answer
 
-IP_ADDRESS=$( python3 -c 'import socket
+    echo "$HOSTNAME"
 
-def get_local_ip():
-    try:
-        hostname = socket.gethostname()
-        local_ip = socket.gethostbyname(hostname)
-        return local_ip
-    except Exception:
-        return "Unable to get IP address"
+    IP_ADDRESS=$( python3 -c 'import socket
 
-print(get_local_ip())'
-)
+    def get_local_ip():
+        try:
+            hostname = socket.gethostname()
+            local_ip = socket.gethostbyname(hostname)
+            return local_ip
+        except Exception:
+            return "Unable to get IP address"
 
-echo "${IP_ADDRESS}"
+    print(get_local_ip())'
+    )
 
-dig -x "${IP_ADDRESS}" +noall +answer
+    echo "${IP_ADDRESS}"
+
+    dig -x "${IP_ADDRESS}" +noall +answer
+
+}
+
+# Source the footer
+source bash_footer.template.live
 

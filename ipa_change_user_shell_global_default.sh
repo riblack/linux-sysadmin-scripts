@@ -1,11 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-ipa config-mod --defaultshell=/bin/bash
+ipa_change_user_shell_global_default () 
+{ 
 
-# verify the change
-# ipa config-show
+    ipa config-mod --defaultshell=/bin/bash
 
-# verify by testing
-# ipa user-add testuser --first="Test" --last="User"
-# ipa user-show testuser
+    # verify the change
+    # ipa config-show
+
+    # verify by testing
+    # ipa user-add testuser --first="Test" --last="User"
+    # ipa user-show testuser
+
+}
+
+# Source the footer
+source bash_footer.template.live
 

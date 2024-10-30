@@ -1,21 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-unset -f configure_vimrc
 configure_vimrc () 
 { 
-    VIMRC_FILE=~/.vimrc;
+    VIMRC_FILE=~/.vimrc
     settings=$(cat <<'EOF' | sed -e 's,[ \t]*\#.*$,,' | grep .
 set hlsearch
 set number
 EOF
-);
+)
     while read entry 0<&3; do
-        echo;
-        echo "Checking ${entry}";
+        echo
+        echo "Checking ${entry}"
         sed -e 's,[ \t]*".*$,,' "${VIMRC_FILE}" | grep "${entry}" && echo "present" || { 
-            echo "adding...";
+            echo "adding..."
             echo "${entry}" >> "${VIMRC_FILE}"
-        };
+        }
     done 3< <( echo "${settings}" )
 }
-configure_vimrc "$@"
+
+# Source the footer
+source bash_footer.template.live
+

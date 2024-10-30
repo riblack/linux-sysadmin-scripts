@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-unset -f mcd
 mcd () 
 { 
-    mkdir -p "$1";
+    mkdir -p "$1"
     cd "$1"
 }
-mcd "$@"
+
+# Source the footer
+source bash_footer.template.live
 

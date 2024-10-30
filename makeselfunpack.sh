@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-unset -f makeselfunpack
 makeselfunpack () 
 { 
 
@@ -28,5 +27,6 @@ EOF
 
 }
 
-makeselfunpack "$@"
+# Source the footer
+source bash_footer.template.live
 
