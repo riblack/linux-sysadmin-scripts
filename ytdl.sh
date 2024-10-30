@@ -15,18 +15,45 @@ ytdl ()
     # Create the video directory if it doesn't exist
     [ -d "${VIDEO_DIRECTORY}" ] || mkdir -p "${VIDEO_DIRECTORY}"
 
+    # Determine the name to return
+    if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+        # Sourced: use the function name
+        script_name="${FUNCNAME[0]}"
+    else
+        # Not sourced: get the full path
+        script_path="${0%/*}"  # Get the directory part of the path
+        if [[ -z "${script_path}" ]]; then
+            script_path="."  # If no directory, use current directory
+        fi
+        script_name="$(cd "${script_path}" && pwd)/${0##*/}"  # Full path with script name
+    fi
+
     # Process each URL passed as an argument
     while [ -n "$1" ]; do
-        url="$1"  # Get the first argument
-        echo "Downloading video from: $url"
+        URL="$1"  # Get the first argument
+        echo "Downloading video from: ${URL}"
         
         (   
             cd "${VIDEO_DIRECTORY}" || exit 1
-            printf '%s %s\n' "$(date "+%Y%m%d_%H%M%S")" "$url" >> "${VIDEO_DOWNLOAD_URL_LOG}"
-            ${VIDEO_DOWNLOADER} "$url" || echo "Failed to download: $url"
+            DATESTAMP=$(date "+%Y-%m-%d %H:%M:%S %a")
+            printf '[%s] [%s] [%s] %s\n' "${DATESTAMP}" "${script_name}" "${HOSTNAME}" "${URL}" >> "${VIDEO_DOWNLOAD_URL_LOG}"
+            ${VIDEO_DOWNLOADER} "${URL}" || echo "Failed to download: ${URL}"
         )
         
         shift  # Shift the arguments to process the next one
     done
+
+    # Return the name of the function or script
+    echo "Called from: ${script_name}"
 }
+
+# Footer to check execution context
+# Extract the function name from the script name
+function_name="${0##*/}"     # Get the script name without path
+function_name="${function_name%.sh}"  # Remove the .sh extension
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # If the script is being run directly, call the function with all arguments
+    "${function_name}" "$@"
+fi
 
