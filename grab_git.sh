@@ -20,6 +20,7 @@ grab_git ()
     mkdir -p ~/git;
 
     printf '%s %s\n' "$(date "+%Y%m%d_%H%M%S")" "$git_url" >> ~/GITREPO/grab_git.log;
+    printf '%s %s\n' "$(date "+%Y%m%d_%H%M%S")" "$git_url" >> ~/git/grab_git.log;
 
     ( cd ~/GITREPO;
     git clone "$git_url";
