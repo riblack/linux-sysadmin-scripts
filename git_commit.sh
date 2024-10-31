@@ -11,6 +11,10 @@ git_commit ()
         return 1
     };
     file_list=$( while [[ -n "$1" ]]; do echo $1; shift; done )
+    mkdir -p /data/backups
+    while IFS= read -r file 0<&3; do
+	    cp -avi "$file" "/data/backups/${file}_$(date "+%Y%m%d_%H%M%S").bak"
+    done 3< <( echo $file_list )
     git status
     read -p "Pausing for a moment for you to read the above status before pulling. (enter to continue)" pause
     git pull
