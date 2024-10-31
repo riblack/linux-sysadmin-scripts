@@ -35,8 +35,23 @@ EOF_SETTINGS
         cd "${GIT_DIRECTORY}" || return 1
         git clone https://github.com/riblack/linux-sysadmin-scripts.git || return 1
 
-        # Ensure alias for easy access
+        # Ensure function for easy access
         grep -q "lss.sh" ~/.bash_functions || echo ". \"${LINUX_SYSADMIN_SCRIPTS_DIRECTORY%/}/lss.sh\"" >> ~/.bash_functions
+
+        # Make sure functions load on startup
+        grep -q ".bash_functions" ~/.bashrc || cat <<-'EOF_BASH_FUNCTIONS' >> ~/.bashrc
+
+# Function definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_functions, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+if [ -f ~/.bash_functions ]; then
+    . ~/.bash_functions
+fi
+
+EOF_BASH_FUNCTIONS
+
         echo "Installation complete."
 
         . "${LINUX_SYSADMIN_SCRIPTS_DIRECTORY%/}/lss.sh"
