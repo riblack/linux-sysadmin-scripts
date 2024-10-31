@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 alias lss >/dev/null 2>&1 && unalias lss
+. "${HOME}/.config/lss/lss.conf"
 
 # Main function to navigate to the script directory
 lss ()
@@ -24,5 +25,5 @@ lss ()
 }
 
 # Source footer if it exists
-[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
+[ -f "${LINUX_SYSADMIN_SCRIPTS_DIRECTORY}/bash_footer.template.live" ] && source "${LINUX_SYSADMIN_SCRIPTS_DIRECTORY}/bash_footer.template.live" || echo "Footer template missing. Skipping..."
 
