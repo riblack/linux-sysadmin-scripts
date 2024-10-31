@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-alias lss >/dev/null && unalias lss
+alias lss >/dev/null 2>&1 && unalias lss
 
 # Main function to navigate to the script directory
 lss ()
