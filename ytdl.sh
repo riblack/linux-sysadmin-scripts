@@ -75,7 +75,7 @@ ytdl ()
             cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
             DATESTAMP=$(date "+%Y-%m-%d %H:%M:%S %a")
             printf '[%s] [%s] [%s] %s\n' "${DATESTAMP}" "${script_name}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
-#            ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
+            ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
 
             mkdir -p videos
             mv -v *.mp4 videos/
