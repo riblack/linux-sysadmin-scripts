@@ -18,6 +18,14 @@ ytdl ()
 
     VIDEO_DOWNLOADER_COMMAND_ARGS=()
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader" "http:ffmpeg")
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("-k" "--format" "mp4")
+
+# -x -k --audio-format mp3 --audio-quality 192K --format mp4 
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("-x" "--audio-format" "mp3" "--audio-quality" "192K")
+
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-all-thumbnails" "--convert-thumbnails" "png")
+
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-subs" "--write-auto-subs" "--sub-format" "vtt/srt/ass/best" "--sub-langs" "en,es,en.*,es.*,eo,epo,eo.*,epo.*")
 
     # You must enable the above --downloader http:ffmpeg in order to use the following
     # You must put all ffmpeg arguments into one line (else the last ffmpeg args wins)
@@ -67,7 +75,24 @@ ytdl ()
             cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
             DATESTAMP=$(date "+%Y-%m-%d %H:%M:%S %a")
             printf '[%s] [%s] [%s] %s\n' "${DATESTAMP}" "${script_name}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
-            ${VIDEO_DOWNLOADER_COMMAND} -x -k --audio-format mp3 --audio-quality 192K --format mp4 "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
+#            ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
+
+            mkdir -p videos
+            mv -v *.mp4 videos/
+
+            mkdir -p audios
+            mv -v *.mp3 audios
+
+            mkdir -p thumbnails
+            mv -v *.jpg thumbnails/
+            mv -v *.png thumbnails/
+            mv -v *.webp thumbnails/
+
+            mkdir -p subtitles
+            mv -v *.vtt subtitles/
+            mv -v *.srt subtitles/
+            mv -v *.ass subtitles/
+            mv -v *.lrc subtitles/
         )
 
         shift  # Move to the next argument
