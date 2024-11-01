@@ -17,13 +17,15 @@ ytdl ()
     # -v trace
 
     VIDEO_DOWNLOADER_COMMAND_ARGS=()
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--mtime")
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader" "http:ffmpeg")
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-k" "--format" "mp4")
 
 # -x -k --audio-format mp3 --audio-quality 192K --format mp4 
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-x" "--audio-format" "mp3" "--audio-quality" "192K")
 
-    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-all-thumbnails" "--convert-thumbnails" "png")
+    #VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-all-thumbnails" "--convert-thumbnails" "png")
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-all-thumbnails")
 
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-subs" "--write-auto-subs" "--sub-format" "vtt/srt/ass/best" "--sub-langs" "en,es,en.*,es.*,eo,epo,eo.*,epo.*")
 
@@ -71,28 +73,137 @@ ytdl ()
         # Set a per-domain log file
         DOMAIN_DOWNLOAD_LOG="${DOMAIN_VIDEOS_DIRECTORY%/}.log"
 
+        # Extract a usable video handle for use in finding this content after downloads complete
+        case "${URL}" in
+            *youtube.com/shorts*)
+                VIDEO_HANDLE="[${URL##*/}]"
+                echo "This is a youtube short, the id is the last field: ${VIDEO_HANDLE}" 1>&2
+            ;;
+            *)
+                VIDEO_HANDLE="[${URL##*/}]"
+                echo "No specific video handler built for this type of url so attempting to use last URL field: ${VIDEO_HANDLE}" 1>&2
+            ;;
+        esac
+
         (
             cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
-            DATESTAMP=$(date "+%Y-%m-%d %H:%M:%S %a")
-            printf '[%s] [%s] [%s] %s\n' "${DATESTAMP}" "${script_name}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
+            DATESTAMP_NOW=$(date "+%Y-%m-%d %H:%M:%S %a")
+
+            # Add entry to the logfile
+            printf '[%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${script_name}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
+
+            # Perform the downloads for this single URL
             ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
 
-            mkdir -p videos
-            mv -v *.mp4 videos/
+            # Get the earliest datestamp for this particular VIDEO_HANLE
+            FILE_DATESTAMP_EARLIEST=$(find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -printf "%T@ %p\n" | sort -n | head -n 1)
+            FILE_DATESTAMP_EARLIEST="${FILE_DATESTAMP_EARLIEST%% *}"
 
-            mkdir -p audios
-            mv -v *.mp3 audios
+            # Apply this timestamp to all files with this VIDEO_HANDLE - this code is optional and is standalone
+            find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -exec touch -d "@${FILE_DATESTAMP_EARLIEST}" {} \;
 
-            mkdir -p thumbnails
-            mv -v *.jpg thumbnails/
-            mv -v *.png thumbnails/
-            mv -v *.webp thumbnails/
+            # Move video files
+            VIDEOS_DIRECTORY=videos
+            VIDEOS_WORD=videos
+            mkdir -p "${VIDEOS_DIRECTORY}"
 
-            mkdir -p subtitles
-            mv -v *.vtt subtitles/
-            mv -v *.srt subtitles/
-            mv -v *.ass subtitles/
-            mv -v *.lrc subtitles/
+            VIDEOS_FILE_EXTENSIONS=$(cat <<'EOF'
+.mp4
+EOF
+            )
+
+            FIND_EXTENSIONS_ARGUMENTS=$(echo "${VIDEOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
+            FIND_VIDEOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+EOF
+            )
+            eval $FIND_VIDEOS_COMMAND | tr '\n' '\0' | xargs -0 -r -I{} mv -v "{}" "${VIDEOS_DIRECTORY}"
+
+            # Move audio files
+            AUDIOS_DIRECTORY=audios
+            AUDIOS_WORD=audios
+            mkdir -p "${AUDIOS_DIRECTORY}"
+
+            AUDIOS_FILE_EXTENSIONS=$(cat <<'EOF'
+.mp3
+EOF
+            )
+
+            FIND_EXTENSIONS_ARGUMENTS=$(echo "${AUDIOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
+            FIND_AUDIOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+EOF
+            )
+            eval $FIND_AUDIOS_COMMAND | tr '\n' '\0' | xargs -0 -r -I{} mv -v "{}" "${AUDIOS_DIRECTORY}"
+
+            # Archiving thumbnails
+            THUMBNAILS_DIRECTORY=thumbnails
+            THUMBNAILS_WORD=thumbnails
+            mkdir -p "${THUMBNAILS_DIRECTORY}"
+
+            THUMBNAIL_FILE_EXTENSIONS=$(cat <<'EOF'
+.jpg
+.jpeg
+.png
+.webp
+EOF
+            )
+
+            THUMBNAILS_ARCHIVE_FILE="${VIDEO_HANDLE}_$(date -d "@${FILE_DATESTAMP_EARLIEST}" "+%Y%m%d_%H%M%S")_${THUMBNAILS_WORD}.tgz"
+
+            FIND_EXTENSIONS_ARGUMENTS=$(echo "${THUMBNAIL_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
+            FIND_THUMBNAILS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+EOF
+            )
+
+            # Store the result of the find command
+            THUMBNAIL_FILES=$(eval "${FIND_THUMBNAILS_COMMAND}")
+
+            # Check if there are any thumbnail files to process
+            if [ -n "$THUMBNAIL_FILES" ]; then
+                # Create the tar file if there are thumbnail files
+                echo "$THUMBNAIL_FILES" | tr '\n' '\0' | tar --null -T - -czvf "${THUMBNAILS_DIRECTORY}/${THUMBNAILS_ARCHIVE_FILE}"
+                touch -d "@${FILE_DATESTAMP_EARLIEST}" "${THUMBNAILS_DIRECTORY}/${THUMBNAILS_ARCHIVE_FILE}"
+                echo "$THUMBNAIL_FILES" | tr '\n' '\0' | xargs -0 -r -I{} rm -v "{}"
+            else
+                echo "No thumbnail files found for processing."
+            fi
+
+            # Archiving subtitles
+            SUBTITLES_DIRECTORY=subtitles
+            SUBTITLES_WORD=subtitles
+            mkdir -p "${SUBTITLES_DIRECTORY}"
+
+            SUBTITLE_FILE_EXTENSIONS=$(cat <<'EOF'
+.vtt
+.srt
+.ass
+.lrc
+EOF
+            )
+
+            SUBTITLES_ARCHIVE_FILE="${VIDEO_HANDLE}_$(date -d "@${FILE_DATESTAMP_EARLIEST}" "+%Y%m%d_%H%M%S")_${SUBTITLES_WORD}.tgz"
+
+            FIND_EXTENSIONS_ARGUMENTS=$(echo "${SUBTITLE_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
+            FIND_SUBTITLES_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+EOF
+            )
+
+            # Store the result of the find command
+            SUBTITLE_FILES=$(eval "${FIND_SUBTITLES_COMMAND}")
+
+            # Check if there are any subtitle files to process
+            if [ -n "$SUBTITLE_FILES" ]; then
+                # Create the tar file if there are subtitle files
+                echo "$SUBTITLE_FILES" | tr '\n' '\0' | tar --null -T - -czvf "${SUBTITLES_DIRECTORY}/${SUBTITLES_ARCHIVE_FILE}"
+                touch -d "@${FILE_DATESTAMP_EARLIEST}" "${SUBTITLES_DIRECTORY}/${SUBTITLES_ARCHIVE_FILE}"
+                echo "$SUBTITLE_FILES" | tr '\n' '\0' | xargs -0 -r -I{} rm -vi "{}"
+            else
+                echo "No subtitle files found for processing."
+            fi
+
         )
 
         shift  # Move to the next argument
