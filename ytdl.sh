@@ -75,9 +75,14 @@ ytdl ()
 
         # Extract a usable video handle for use in finding this content after downloads complete
         case "${URL}" in
-            *youtube.com/shorts*)
+            *youtube.com/shorts/*)
                 VIDEO_HANDLE="[${URL##*/}]"
                 echo "This is a youtube short, the id is the last field: ${VIDEO_HANDLE}" 1>&2
+            ;;
+            *youtube.com/watch?v=*)
+                VIDEO_HANDLE="[${URL##*/}]"
+                VIDEO_HANDLE=$(echo "${VIDEO_HANDLE}" | sed -e 's,watch?v=,,' -e 's,&.*$,,')
+                echo "This is a regular youtube video, we picked out this as the video handle: ${VIDEO_HANDLE}" 1>&2
             ;;
             *)
                 VIDEO_HANDLE="[${URL##*/}]"
@@ -199,7 +204,7 @@ EOF
                 # Create the tar file if there are subtitle files
                 echo "$SUBTITLE_FILES" | tr '\n' '\0' | tar --null -T - -czvf "${SUBTITLES_DIRECTORY}/${SUBTITLES_ARCHIVE_FILE}"
                 touch -d "@${FILE_DATESTAMP_EARLIEST}" "${SUBTITLES_DIRECTORY}/${SUBTITLES_ARCHIVE_FILE}"
-                echo "$SUBTITLE_FILES" | tr '\n' '\0' | xargs -0 -r -I{} rm -vi "{}"
+                echo "$SUBTITLE_FILES" | tr '\n' '\0' | xargs -0 -r -I{} rm "{}"
             else
                 echo "No subtitle files found for processing."
             fi
