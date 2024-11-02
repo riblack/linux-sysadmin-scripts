@@ -129,7 +129,7 @@ ytdl ()
             cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
             DATESTAMP_NOW=$(date "+%Y-%m-%d %H:%M:%S %a")
 
-            YTDLP_VERSION=$(${VIDEO_DOWNLOADER_COMMAND} -v)
+            YTDLP_VERSION=$(${VIDEO_DOWNLOADER_COMMAND} --version)
 
             # Add entry to the logfile
             printf '[%s] [%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${script_name}" "${YTDLP_VERSION}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
