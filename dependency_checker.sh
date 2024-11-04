@@ -33,7 +33,6 @@ fi
 base_chars='a-zA-Z0-9'
 # Extended character set for more aggressive inclusion
 additional_chars='_.+=:/!@#$%^&*-'
-additional_chars='*.+'
 
 # Store potential dependencies
 dependencies=""
@@ -97,7 +96,7 @@ for cmd in $dependencies; do
   if command -v -- "$cmd" &> /dev/null; then
     echo "===================================================================== Dependency found: $cmd"
     command -v -- "$cmd"
-    dpkg -S $(command -v -- "$cmd") || dpkg -S $(realpath $(which "$cmd")) || dpkg -S "$cmd"
+    dpkg -S -- $(command -v -- "$cmd") || dpkg -S -- $(realpath $(which "$cmd")) || dpkg -S -- "$cmd"
 echo "========================================================================================= lines where matches can be found:"
 cat "$SCRIPT" |
     # Remove all comments
