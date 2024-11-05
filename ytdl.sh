@@ -166,7 +166,7 @@ ytdl ()
                     ${FUNCNAME[0]} $(echo "${JSON_URLS_OUTPUT_LISTING}" | jq -r .url)
 
                     # Since this is a playlist then we do not perform regular tasks, just processed the playlist, so skipping to top of loop
-                    continue
+                    exit 0
 
                 ;;
 
