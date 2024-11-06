@@ -1,0 +1,11 @@
+Optional: Configure the Script to Start on Boot
+If you want the script to start automatically on boot:
+
+crontab -e
+
+Add the following line to start the script after login:
+
+@reboot /path/to/your/memory_monitor.sh
+
+Replace /path/to/your/memory_monitor.sh with the actual path to the script. This setup will help keep you alerted if available memory drops or swap usage increases, helping you manage your system's resources effectively.
+
