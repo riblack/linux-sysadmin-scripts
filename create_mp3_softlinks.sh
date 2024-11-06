@@ -44,6 +44,7 @@ create_mp3_softlinks() {
         else
             # Calculate and use relative path from destination to source file
             rel_path=$(realpath --relative-to="$dest" "$file")
+            echo "Processing: $rel_path"
             ln -s "$rel_path" .
         fi
     done
