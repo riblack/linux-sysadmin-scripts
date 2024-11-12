@@ -1,0 +1,17 @@
+There are two kinds of footer files:
+
+bash_footer.template
+bash_footer.template.live
+
+The .live is the latest version of the numbered release (i.e. _1.0)
+
+bash_footer.template.live
+bash_footer.template.live_1.0
+
+The differences are that the bash_footer.template is designed if you want to copy/paste into your script. This method is considered "hard coded" because if we make updates to the bash_footer then you'll need to update each script with the new values.
+
+The desired and improved method is to use the following footer (from bash_footer.stub) to automatically pull in the .live footer. The difference is that the following minimal pointer is added to the bottom of your scripts and is not likely to change in the future because it's basically a stub. It is not likely that this stub will be changed in the future. The .live footer is different from the hard coded footer in that because it is indirectly called then there had to be some adjustments in order to return the correct values.
+
+# Source footer if it exists
+[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
+
