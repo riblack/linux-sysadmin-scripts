@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-check_nameserver_entries ()
+show_nameserver_entries ()
 {
     nmcli device show | grep IP4.DNS
 }
