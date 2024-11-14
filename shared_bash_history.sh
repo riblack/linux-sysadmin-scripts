@@ -9,6 +9,9 @@ export HISTSIZE=10000
 # Increase the maximum history file size
 export HISTFILESIZE=20000
 
-# Ignore duplicate entries and lines starting with spaces
-export HISTCONTROL=ignoreboth
+# Ensure all commands are logged, even those starting with spaces
+export HISTCONTROL=ignoredups
+
+# Add timestamps to history entries
+export HISTTIMEFORMAT="%F %T "
 
