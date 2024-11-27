@@ -1,0 +1,35 @@
+# Notes:
+
+##################################################
+# csh does not handle newlines
+##################################################
+
+Trying to run either of the following:
+
+echo "hi
+mom"
+
+echo 'hi
+mom'
+
+Results in the following error message to be displayed:
+
+root@example.net:~ # echo "hi
+Unmatched '"'.
+
+root@example.net:~ # mom"
+Unmatched '"'.
+
+root@example.net:~ # echo 'hi
+Unmatched '''.
+
+root@example.net:~ # mom'
+Unmatched '''.
+
+##################################################
+# csh does not allow for functions
+##################################################
+
+root@example.net:~ # test_fn () { echo "Hello World"; }; test_fn
+Badly placed ()'s.
+
