@@ -180,11 +180,11 @@ ytdl ()
             ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
 
             # Get the earliest datestamp for this particular VIDEO_HANLE
-            FILE_DATESTAMP_EARLIEST=$(find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -printf "%T@ %p\n" | sort -n | head -n 1)
+            FILE_DATESTAMP_EARLIEST=$(find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -printf "%T@ %p\n" | sort -n | head -n 1)
             FILE_DATESTAMP_EARLIEST="${FILE_DATESTAMP_EARLIEST%% *}"
 
             # Apply this timestamp to all files with this VIDEO_HANDLE - this code is optional and is standalone
-            find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -exec touch -d "@${FILE_DATESTAMP_EARLIEST}" {} \;
+            find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -exec touch -d "@${FILE_DATESTAMP_EARLIEST}" {} \;
 
             # Move video files
             VIDEOS_DIRECTORY=videos
@@ -198,7 +198,7 @@ EOF
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${VIDEOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
             FIND_VIDEOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
-find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
             eval $FIND_VIDEOS_COMMAND | tr '\n' '\0' | xargs -0 -r -I{} mv -v "{}" "${VIDEOS_DIRECTORY}"
@@ -215,7 +215,7 @@ EOF
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${AUDIOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
             FIND_AUDIOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
-find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
             eval $FIND_AUDIOS_COMMAND | tr '\n' '\0' | xargs -0 -r -I{} mv -v "{}" "${AUDIOS_DIRECTORY}"
@@ -237,7 +237,7 @@ EOF
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${THUMBNAIL_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
             FIND_THUMBNAILS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
-find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
 
@@ -271,7 +271,7 @@ EOF
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${SUBTITLE_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
             FIND_SUBTITLES_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
-find . -maxdepth 1 -type f -name "*${VIDEO_HANDLE}*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
+find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
 
