@@ -8,6 +8,6 @@ debug ()
     fi
 }
 
-# Source the footer
-source bash_footer.template.live
+# Source footer if it exists
+[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
 

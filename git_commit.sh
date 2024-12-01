@@ -41,6 +41,6 @@ git_commit ()
     read -p "Pausing for a moment for you to read the above status before returning. (enter to continue)" pause
 }
 
-# Source the footer
-source bash_footer.template.live
+# Source footer if it exists
+[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
 

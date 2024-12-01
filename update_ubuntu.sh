@@ -7,6 +7,6 @@ update_ubuntu ()
     sudo apt upgrade -y && sudo apt dist-upgrade -y && sudo aptitude update -y && sudo aptitude upgrade -y && sudo killall snap-store && sudo snap refresh
 }
 
-# Source the footer
-source bash_footer.template.live
+# Source footer if it exists
+[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
 

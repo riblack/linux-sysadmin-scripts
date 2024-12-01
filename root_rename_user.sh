@@ -85,6 +85,6 @@ root_rename_user ()
     echo "User '$old_username' has been renamed to '$new_username'."
 }
 
-# Source the footer
-source bash_footer.template.live
+# Source footer if it exists
+[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
 

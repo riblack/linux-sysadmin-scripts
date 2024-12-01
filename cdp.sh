@@ -7,6 +7,6 @@ cdp ()
     [ -d "${LAST_PROJECT_DIR}" ] && cd "${LAST_PROJECT_DIR}"
 }
 
-# Source the footer
-source bash_footer.template.live
+# Source footer if it exists
+[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
 
