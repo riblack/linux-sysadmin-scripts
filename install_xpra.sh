@@ -16,6 +16,7 @@ install_xpra ()
     git clone https://github.com/Xpra-org/xpra
     cd xpra
     ./setup.py install-repo
+    sudo apt install -y xpra
 }
 
 # Source footer if it exists
