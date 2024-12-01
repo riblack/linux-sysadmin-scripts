@@ -7,6 +7,8 @@ install_xpra ()
 {
     package=python3-pip
     dpkg -l $package | grep -qw ^ii || sudo apt install -y $package
+    package=pkg-config
+    dpkg -l $package | grep -qw ^ii || sudo apt install -y $package
 #    package=python3-distutils
 #    dpkg -l $package >/dev/null || sudo apt install $package
 #    package=python3-setuptools
