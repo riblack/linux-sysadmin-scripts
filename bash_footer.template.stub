@@ -1,6 +1,6 @@
 # Source footer if it exists
-if [ -f "bash_footer.template.live" ]; then
-    source bash_footer.template.live
+if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
+    source "$SCRIPT_DIR/bash_footer.template.live"
 else
     echo "Footer template missing. Skipping..."
 fi
