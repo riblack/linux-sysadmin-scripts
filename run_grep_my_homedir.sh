@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
-. debug_run.sh
+# Get the directory of the current script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source debug_run.sh
+if [ -f "$SCRIPT_DIR/debug_run.sh" ]; then
+    . "$SCRIPT_DIR/debug_run.sh"
+else
+    echo "debug_run.sh is missing. Exiting..."
+    exit 1
+fi
 
 run_grep_my_homedir () 
 { 
@@ -15,8 +24,8 @@ run_grep_my_homedir ()
 }
 
 # Source footer if it exists
-if [ -f "bash_footer.template.live" ]; then
-    source bash_footer.template.live
+if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
+    source "$SCRIPT_DIR/bash_footer.template.live"
 else
     echo "Footer template missing. Skipping..."
 fi
