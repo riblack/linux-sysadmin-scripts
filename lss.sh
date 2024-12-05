@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Get the directory of the current script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 alias lss >/dev/null 2>&1 && unalias lss
 . "${HOME}/.config/lss/lss.conf"
 
@@ -25,5 +28,9 @@ lss ()
 }
 
 # Source footer if it exists
-[ -f "${LINUX_SYSADMIN_SCRIPTS_DIRECTORY}/bash_footer.template.live" ] && source "${LINUX_SYSADMIN_SCRIPTS_DIRECTORY}/bash_footer.template.live" || echo "Footer template missing. Skipping..."
+if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
+    source "$SCRIPT_DIR/bash_footer.template.live"
+else
+    echo "Footer template missing. Skipping..."
+fi
 
