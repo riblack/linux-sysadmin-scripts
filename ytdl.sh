@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Get the directory of the current script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 ytdl () 
 { 
     VIDEOS_BASE_DIRECTORY=/data/videos
@@ -295,8 +298,8 @@ EOF
 }
 
 # Source footer if it exists
-if [ -f "bash_footer.template.live" ]; then
-    source bash_footer.template.live
+if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
+    source "$SCRIPT_DIR/bash_footer.template.live"
 else
     echo "Footer template missing. Skipping..."
 fi

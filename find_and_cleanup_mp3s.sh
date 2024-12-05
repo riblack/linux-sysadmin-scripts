@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Get the directory of the current script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 read -p "WARNING: This script is under contruction"
 
 process_main_file ()
@@ -88,8 +91,8 @@ find_and_cleanup_mp3s ()
 # find_and_cleanup_mp3s "/mnt/MEDIA/originals" 1
 
 # Source footer if it exists
-if [ -f "bash_footer.template.live" ]; then
-    source bash_footer.template.live
+if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
+    source "$SCRIPT_DIR/bash_footer.template.live"
 else
     echo "Footer template missing. Skipping..."
 fi
