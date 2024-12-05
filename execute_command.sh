@@ -18,5 +18,9 @@ execute_command ()
 }
 
 # Source footer if it exists
-[ -f "bash_footer.template.live" ] && source bash_footer.template.live || echo "Footer template missing. Skipping..."
+if [ -f "bash_footer.template.live" ]; then
+    source bash_footer.template.live
+else
+    echo "Footer template missing. Skipping..."
+fi
 
