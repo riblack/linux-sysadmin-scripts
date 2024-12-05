@@ -1,0 +1,299 @@
+When I begin writing a new script then I start off with the following 4 lines:
+
+myfunction
+myfunction
+myfunction
+myfunction
+
+I then give the following purposes to the above 4 lines, in order:
+- unset -f
+- define the function
+- display the function
+- run the function
+
+It then looks like the following:
+
+unset -f myfunction
+myfunction () { :; }
+declare -f myfunction
+myfunction "$@"
+
+Then I throw on a #!/usr/bin/env bash at the top resulting in the following minimal
+starter code:
+
+#!/usr/bin/env bash
+unset -f myfunction
+myfunction () { echo "Hello World"; }
+declare -f myfunction
+myfunction "$@"
+
+The above myfunction "$@" might actually be replaced with one or more calls to the function
+but with specific runtime arguments highlighting the various cases or edge cases I might
+be working on. This way I keep an eye on them and make sure that they continue to function 
+as I modify or build new code.
+
+Expanding upon the above to make a good starter example (especially to include
+debugging statements and commands as well as to allow for parsing of command line arguments)
+then the starter code balloons up in size somewhat quickly.
+
+Just looking at debugging itself involves adding as many echo statements as is needed as well
+as careful placements of set -xv and set +xv. Also, occasionally, you may need the assistance
+of xxd -g 1 to help investigate a stubborn variable or two.
+
+You can mitigate littering so many echo statements througout your code which need to be 
+carefully removed later by making use of a couple of debug functions:
+- "debug" one debug function to print debug messages to the screen if we are in debug mode
+- "debug_run" another debug function to run specific commands if we are in debug mode
+This saves you time flipping between normal run mode and debug mode and reduces the need
+to delete or comment debug lines.
+So far we have "debug" and "debug_run" but I will check if they could be combined into
+just one function to make things simpler?
+
+I highly recommend to make use of the error function (error.sh) which handles things like
+- print to stderr (channel 2)
+- print ERROR:
+- other info such as hostname, script name, date/time stamp
+Also demonstrated here is the ability to define a default error function in the event that
+error.sh cannot be loaded.
+
+Also recommended is to make your script/function better through the use of being able to 
+parse command line parameters. The sample code gets you started with some basics such as
+-h|--help     display the usage information
+-v|--version  display the version information
+-d|--debug    enable debug mode so that your debug statements begin operating
+(this includes the echo statements as well as running given commands)
+--            the double dash prevents parsing any more command line arguments
+
+This is a great start to expanding, one at a time, into more parameters as your scripts
+capability grows. When adding new features be sure to add it to the case statement and the 
+usage statement. Also, if your parameter takes a value then you can consume that value
+by using $2, but then use "shift" after consuming your value so that the flow keeps moving
+ahead properly.  For example:
+-f|--filename) FILENAME=$2; shift ;;
+
+Note that if your use case dictates, that you could repurpose the unknown option block 
+(basically the catch-all block) noted by "*)", such that you could use it to build a list
+of say host names if your script is focused on target hosts or maybe filenames if your
+script is focuses on processing files. If your script is not so focused on something so
+specific or obvious, then it's usually best to just keep it as an unknown option section
+which throws an error when an unknown argument is encountered.
+
+Note, in general you will get better results by encapsulating your code in a function
+definition rather than just plain bare code.
+
+Why the 4 function lines when creating a new script/function:
+
+part 1)
+I use unset -f because I have spent way too much time debugging why old code is running
+instead of immediately realizing that my new function failed to define due to errors.
+
+part 2)
+the function definition itself
+
+part 3)
+declare -f myfunction
+this is cool for having bash tell you what a well formatted function looks like, pretty cool
+I use it to make my code look like what it is sending me
+
+part 4)
+actually running my function, often several lines of this with various arguments so that
+I test out the various scenarios for my code
+
+Subshells
+
+Any tasks that takes place inside a subshell are lost when the subshell closes, a partial list
+of tasks that are lost once a subshell closes are things such as:
+- if you perform a change directory
+- if you define a variable
+- if you define a function
+- if you define an alias
+
+It is worth paying attention to what opens a subshell and what doesn't:
+
+Things that do not cause a subshell to be opened:
+if; then; else; fi
+while
+for
+{}
+functions defined with {} for the body (the normal way)
+
+while read line; do lastline="$line"; done < <( echo "$line")
+
+but really, I would write it like so:
+
+while read line 0<&3; do lastline="$line"; done 3< <( echo "$line")
+
+Things that cause a subshell to be opened:
+
+- Anything after the pipe symbol, for example "$line" is not set to the last line in $list once the following completes:
+echo "$list" | while read line; do lastline="$line"; done
+()
+$()
+`` - the backticks to run a process is deprecated
+functions defined with () for the body (not normal, but has specific purposes)
+<()
+
+
+
+
+
+------------------------------------------------------------------
+
+
+
+
+
+
+
+I use `unset -f myfunctionname` to remove the old definition of a function before defining a new one.  
+- Without this, an error in your new function definition could prevent it from being defined.  
+- If the new function fails to define, the old version remains active.  
+- This leads to running the old code instead of your intended new code.  
+- You might spend unnecessary time debugging why your changes aren't taking effect.  
+- Using `unset -f` ensures that any failure to define the new function is immediately noticeable.  
+- This approach helps you focus on correcting the definition issue rather than debugging unrelated problems.
+
+You might want to give ERROR MESSAGES some or all of the following features:
+* go to stderr (channel 2)
+* say ERROR:
+* show date/time stamp
+* show the hostname
+* show the script/function name
+Here I am using an error function to handle the above points of interest.
+
+banner $(date "+%H:%M:%S")
+some sort of clear distinction between previous runs and this run
+It could be as cool as this banner statement, or you could do 
+something like the following:
+echo; echo "==============="
+Anything to clearly differentiate between previous runs and this run.
+
+I use echo lines to print important debugging information wich might be
+* the contents of a variable
+* the beginning of a block of code
+* the ending of a block of code
+* the start and end of while loops
+
+You can use set -xv to run on bash debugging messages and set +xv to turn it off. You can do this for the entire script or you can just turn it on and off for a given section of code.
+
+xxd -g 1 is another useful debugging tool that allows you to see a detailed view of contents.
+
+I make use of declare -f myfunctionname because it parrots back my function to me in a reformatted way that bash kind of likes. Careful because it will strip out comments. I often compare my code to this and adjust my spacing, etc, so it matches the result from declare -f myfunctionname. It's kind of like using a "lint" program for bash. I strip this out when finished scripting.
+
+I might have one or more lines calling the function with either "$@" so that I can pass parameters on the command line, or I might call the above function several times with several static parameters so that I can iteratively test the various features of my function to make sure that it handles all the given use cases I'm trying to build. When done I have my specific bash footer that I use which allows you to call this as a regular script file or allows you to dot source the function in to memory.
+
+When done scripting I remove out / comment out the debug items.
+Probably later I'll script some sort of "debug" function which
+will allow you to leave the debug code in place and it only 
+activates when you turn on debug mode
+
+For my methodology of creating scripts I have my standard template 
+for header and footer stored in bash_header.template and 
+bash_footer.template*
+
+Other methodologies I use
+* idempotent concept in my code
+* DRY method
+### Updated Documentation
+
+#### **Example Bash Script Documentation**
+
+##### Purpose
+This example script demonstrates best practices and useful methodologies in Bash scripting. It includes functionality for debugging, error handling, and modular function design. It is structured for flexibility and maintainability.
+
+---
+
+##### Features
+- **Encapsulation**: All logic is encapsulated in a reusable function (`script_creation`).
+- **Debugging Support**: 
+  - Debug messages are displayed when the `-d` or `--debug` option is enabled.
+  - Use of `set -xv` to enable bash debugging around specific code blocks.
+  - Detailed examination of variable contents with `xxd`.
+- **Error Handling**:
+  - Outputs error messages to standard error (`stderr`).
+  - Error messages include a timestamp, hostname, and descriptive content.
+- **Modular Design**:
+  - Functions like `usage`, `version`, and `debug` simplify reuse and maintenance.
+  - Supports `unset -f` to remove outdated function definitions before redefinition.
+- **Command-line Options**:
+  - `-h, --help`: Displays usage instructions.
+  - `-v, --version`: Shows the script name and version.
+  - `-d, --debug`: Enables debug mode to print debug messages.
+
+---
+
+##### Methodologies and Best Practices
+
+1. **Encapsulation in Functions**:
+   - Encapsulate logic in a function to improve modularity and reusability.
+   - Functions make scripts easier to debug and maintain.
+
+2. **Debugging**:
+   - Use `debug` function to centralize debug messages.
+   - Employ `set -xv` for detailed bash debugging only where needed.
+
+3. **Error Handling**:
+   - Centralize error handling in a function (`error`) for consistency.
+   - Print error messages to `stderr` with clear formatting, including:
+     - "ERROR:" prefix
+     - Timestamp
+     - Hostname
+     - Script or function name
+
+4. **Banner for Clear Differentiation**:
+   - Use a banner to separate outputs between script runs.
+
+5. **Variable Examination**:
+   - Use tools like `xxd -g 1` to inspect variable contents thoroughly during debugging.
+
+6. **Idempotence**:
+   - Use `unset -f` to ensure a function is cleanly redefined.
+
+7. **Usage Functionality**:
+   - Include a `usage` function for user-friendly help messages.
+   - Enable `-h` and `--help` to show usage instructions.
+
+8. **Versioning**:
+   - Include a `--version` option to communicate script version.
+
+9. **Command-line Parsing**:
+   - Use a `while` loop with `case` statements to handle command-line options.
+
+---
+
+##### Usage Examples
+
+1. **Run the script with help**:
+   ```bash
+   ./script.sh --help
+   ```
+
+2. **Run the script in debug mode**:
+   ```bash
+   ./script.sh --debug
+   ```
+
+3. **Check script version**:
+   ```bash
+   ./script.sh --version
+   ```
+
+---
+
+##### Methodologies to Adopt
+- Use meaningful comments to explain code.
+- Write reusable and modular functions.
+- Include clear error handling for robust scripts.
+- Document the script with usage instructions and examples.
+
+---
+
+This structure and documentation aim to help new users understand Bash scripting fundamentals while fostering good practices.
+
+
+
+
+
+In programming, a parameter is a variable listed within a function definition, acting as a placeholder for the data the function expects to receive when called, while an argument is the actual value that is passed to the function when it is invoked, essentially filling in the placeholder defined by the parameter; in simpler terms, parameters are defined in the function, while arguments are provided when calling the function. 
+
+
