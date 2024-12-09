@@ -7,7 +7,8 @@ update_ubuntu ()
 { 
     sudo apt update -y || return 1
     apt list --upgradable
-    sudo apt upgrade -y && sudo apt dist-upgrade -y && sudo aptitude update -y && sudo aptitude upgrade -y && sudo killall snap-store && sudo snap refresh
+    sudo apt upgrade -y && sudo apt dist-upgrade -y && sudo aptitude update -y && sudo aptitude upgrade -y && sudo apt autoremove
+    sudo killall snap-store && sudo snap refresh
     package=fwupd
     dpkg -l $package | grep -qw ^ii || sudo apt install -y $package
     fwupdmgr refresh --force && fwupdmgr get-updates && fwupdmgr update
