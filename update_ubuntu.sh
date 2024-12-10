@@ -5,19 +5,43 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 update_ubuntu () 
 { 
-    sudo apt update -y || return 1
-    apt list --upgradable
-    sudo apt upgrade -y && sudo apt dist-upgrade -y && sudo aptitude update -y && sudo aptitude upgrade -y && sudo apt autoremove
-    sudo killall snap-store && sudo snap refresh
+
+    package=apt
+    dpkg -l $package | grep -qw ^ii && {
+        sudo apt-get -y update || return 1
+        apt list --upgradable
+        sudo apt-get -y upgrade || return 1
+        sudo apt-get -y dist-upgrade || return 1
+        sudo apt autoremove || return 1
+    }
+
+    package=aptitude 
+    # dpkg -l $package | grep -qw ^ii || apt-get -y install $package
+    dpkg -l $package | grep -qw ^ii && {
+        sudo aptitude -y update || return 1
+        sudo aptitude -y upgrade || return 1
+    }
+
+    package=snapd
+    # dpkg -l $package | grep -qw ^ii || apt-get -y install $package
+    dpkg -l $package | grep -qw ^ii && {
+        sudo killall snap-store
+        sudo snap refresh || return 1
+    }
+
     package=fwupd
-    dpkg -l $package | grep -qw ^ii || sudo apt install -y $package
-    fwupdmgr refresh --force && fwupdmgr get-updates && fwupdmgr update
-    ### # Other fwupdmgr commands
-    ### fwupdmgr --help
-    ### fwupdmgr --version
-    ### fwupdmgr get-devices
-    ### # Alias to fwupdmgr update
-    ### fwupdmgr upgrade
+    # dpkg -l $package | grep -qw ^ii || apt-get -y install $package
+    dpkg -l $package | grep -qw ^ii && {
+        fwupdmgr refresh --force || return 1
+        fwupdmgr get-updates
+        fwupdmgr update || return 1
+        ### # Other fwupdmgr commands
+        ### fwupdmgr --help
+        ### fwupdmgr --version
+        ### fwupdmgr get-devices
+        ### # Alias to fwupdmgr update
+        ### fwupdmgr upgrade
+    }
 }
 
 # Source footer if it exists
