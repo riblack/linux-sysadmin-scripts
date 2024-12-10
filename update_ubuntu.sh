@@ -13,6 +13,7 @@ update_ubuntu ()
         sudo apt-get -y upgrade || return 1
         sudo apt --fix-broken install
         sudo apt-get -y dist-upgrade || return 1
+        # sudo apt-get -y autoremove --dry-run
         sudo apt-get -y autoremove || return 1
         sudo apt-get autoclean
     }
