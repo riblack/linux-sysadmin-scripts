@@ -3,8 +3,8 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-makeselfunpack () 
-{ 
+makeselfunpack ()
+{
 
     # Check if at least one file is provided
     if [ "$#" -eq 0 ]; then
@@ -12,21 +12,34 @@ makeselfunpack ()
         exit 1
     fi
 
+    # Generate the file manifest
+    MANIFEST=$(printf "%s\n" "$@")
+
+    # Create the tarball and encode it in base64
     OUTPUT=$( tar -czf - "$@" | base64 )
 
-    cat <<'EOF'
+    cat <<'EOFPART1'
 selfunpack () 
 { 
+    echo "The following files will be unpacked:"
+EOFPART1
+
+    # Add the file manifest to the script
+    echo "$MANIFEST" | sed 's/^/    echo "/;s/$/"/'
+
+    cat <<'EOFPART2'
     read -p "Are you in the right directory? (ctrl + c to abort) "
     cat <<'EOFTARBASE64' | base64 -d | tar -xzvf -
-EOF
+EOFPART2
 
+    # Include the encoded tarball
     echo "${OUTPUT}"
-    cat <<'EOF'
+
+    cat <<'EOFPART3'
 EOFTARBASE64
 }
 selfunpack 
-EOF
+EOFPART3
 
 }
 
