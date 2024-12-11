@@ -6,39 +6,42 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 makeselfunpack ()
 {
 
-    # Check if at least one file is provided
+    # Ensure at least one file is provided
     if [ "$#" -eq 0 ]; then
         echo "Usage: $0 <file1> [file2 ...]"
+        echo "Error: No files specified for packaging."
         exit 1
     fi
 
-    # Generate the file manifest
-    MANIFEST=$(printf "%s\n" "$@")
 
     # Create the tarball and encode it in base64
     OUTPUT=$( tar -czf - "$@" | base64 )
 
+    # Create self-unpacking script
     cat <<'EOFPART1'
 selfunpack () 
-{ 
-    echo "The following files will be unpacked:"
+{
 EOFPART1
 
-    # Add the file manifest to the script
-    echo "$MANIFEST" | sed 's/^/    echo "/;s/$/"/'
+    echo "    echo \"The following files will be unpacked:\""
+
+    # Add file list to the unpacker
+    for file in "$@"; do
+        echo "    echo \"$file\""
+    done
 
     cat <<'EOFPART2'
     read -p "Are you in the right directory? (ctrl + c to abort) "
     cat <<'EOFTARBASE64' | base64 -d | tar -xzvf -
 EOFPART2
 
-    # Include the encoded tarball
+    # Embed the base64-encoded tarball
     echo "${OUTPUT}"
 
     cat <<'EOFPART3'
 EOFTARBASE64
 }
-selfunpack 
+selfunpack
 EOFPART3
 
 }
