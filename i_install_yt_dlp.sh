@@ -6,23 +6,58 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . dpkg_remove.sh
 . dpkg_install.sh
 
+# Function to install or configure yt-dlp based on the system's codename
 i_install_yt_dlp ()
-{ 
-    package=yt-dlp;
-    codename=$(grep VERSION_CODENAME /etc/os-release);
+{
+    local package="yt-dlp"
+
+    # Retrieve the OS codename
+    local codename
+    codename=$(grep VERSION_CODENAME /etc/os-release)
     codename=${codename#*=}
-    case $codename in 
+
+    # Ensure the codename is not empty
+    if [[ -z "$codename" ]]; then
+        echo "Error: Unable to determine OS codename."
+        return 1
+    fi
+
+    # Perform actions based on the codename
+    case "$codename" in
         jammy)
-            # dpkg -l $package | grep '^ii' && sudo apt remove $package;
-            dpkg_remove $package
-            snap list $package || snap install $package
-            dpkg -l ffmpeg | grep '^ii' || sudo apt install ffmpeg
-        ;;
+            echo "Detected codename: $codename (Ubuntu 22.04)"
+
+            # Remove yt-dlp via dpkg if installed, then install it via snap
+            dpkg_remove "$package"
+            if ! snap list "$package" &>/dev/null; then
+                echo "Installing $package via snap..."
+                snap install "$package"
+            else
+                echo "$package is already installed via snap."
+            fi
+
+            # Ensure ffmpeg is installed
+            if ! dpkg -l ffmpeg | grep -q '^ii'; then
+                echo "Installing ffmpeg..."
+                sudo apt-get install -y ffmpeg
+            else
+                echo "ffmpeg is already installed."
+            fi
+            ;;
         *)
-            snap list $package || snap remove $package
-            # dpkg -l $package | grep '^ii' || sudo apt install $package
-            dpkg_install $package
-        ;;
+            echo "Detected codename: $codename (Other distributions)"
+
+            # Remove yt-dlp via snap if installed, then install it via dpkg/apt
+            if snap list "$package" &>/dev/null; then
+                echo "Removing $package via snap..."
+                snap remove "$package"
+            else
+                echo "$package is not installed via snap."
+            fi
+
+            # Install yt-dlp via dpkg/apt
+            dpkg_install "$package"
+            ;;
     esac
 }
 
