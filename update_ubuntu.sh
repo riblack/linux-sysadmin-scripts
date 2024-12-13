@@ -35,7 +35,7 @@ update_ubuntu ()
     package=fwupd
     # dpkg -l $package | grep -qw ^ii || apt-get -y install $package
     dpkg -l $package | grep -qw ^ii && {
-        fwupdmgr get-devices
+        fwupdmgr get-devices >/dev/null
         fwupdmgr refresh --force || return 1
         fwupdmgr get-updates
         fwupdmgr -y update || return 1
