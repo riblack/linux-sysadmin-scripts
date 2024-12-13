@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo working on ytdl-improvements
 
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
