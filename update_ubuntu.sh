@@ -3,8 +3,8 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-update_ubuntu () 
-{ 
+update_ubuntu ()
+{
 
     package=apt
     dpkg -l $package | grep -qw ^ii && {
@@ -18,7 +18,7 @@ update_ubuntu ()
         sudo apt-get autoclean
     }
 
-    package=aptitude 
+    package=aptitude
     # dpkg -l $package | grep -qw ^ii || apt-get -y install $package
     dpkg -l $package | grep -qw ^ii && {
         sudo aptitude -y update || return 1
