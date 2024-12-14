@@ -79,6 +79,12 @@ ytdl ()
     # Also needed is a followup with jq -r .url
     PLAYLIST_DISPLAY_URLS_ARGS+=("--flat-playlist" "-j")
 
+# Bring in arguments from $YTDL_ARGUMENTS
+
+if [[ -n "$YTDL_ARGUMENTS" ]]; then
+    set -- $YTDL_ARGUMENTS "$@"
+fi
+
 TMPDIRBASE=""
 TMPDIR=""
 case $1 in
