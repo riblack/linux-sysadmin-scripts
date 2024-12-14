@@ -79,8 +79,34 @@ ytdl ()
     # Also needed is a followup with jq -r .url
     PLAYLIST_DISPLAY_URLS_ARGS+=("--flat-playlist" "-j")
 
+TMPDIRBASE=""
+TMPDIR=""
+case $1 in
+-t|--tmpdir) TMPDIRBASE=$2; shift; shift
+
+   # Check if the directory exists and is writable
+    if [ ! -d "$TMPDIRBASE" ] || [ ! -w "$TMPDIRBASE" ]; then
+        echo "Error: '$TMPDIRBASE' is not a writable directory."
+        return 1
+    fi
+
+   # Create a unique temporary directory
+    local TMPDIR
+    TMPDIR=$(mktemp -d "$TMPDIRBASE/tmp.ytdl.$(date +"%Y%m%d_%H%M%S").XXXXXX")
+
+    if [ ! -d "$TMPDIR" ]; then
+        echo "Error: Failed to create temporary directory."
+        return 1
+    fi
+
+;;
+*)
+;;
+esac
+
     # Process each URL passed as an argument
     while [ -n "$1" ]; do
+
         URL="$1"  # Get the first argument
         echo "Downloading video from: ${URL}"
 
@@ -131,6 +157,10 @@ ytdl ()
 
         (
             cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
+
+ # Change into the temporary directory
+    cd "${TMPDIR}" || return 1
+
             DATESTAMP_NOW=$(date "+%Y-%m-%d %H:%M:%S %a")
 
             YTDLP_VERSION=$(${VIDEO_DOWNLOADER_COMMAND} --version)
