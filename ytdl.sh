@@ -4,8 +4,8 @@ echo working on ytdl-improvements
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-ytdl () 
-{ 
+ytdl ()
+{
     VIDEOS_BASE_DIRECTORY=/data/videos
     VIDEO_DOWNLOADER_COMMAND=$(command -v yt-dlp)
 
@@ -25,7 +25,7 @@ ytdl ()
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader" "http:ffmpeg")
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-k" "--format" "mp4")
 
-# -x -k --audio-format mp3 --audio-quality 192K --format mp4 
+    # -x -k --audio-format mp3 --audio-quality 192K --format mp4
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-x" "--audio-format" "mp3" "--audio-quality" "192K")
 
     #VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-all-thumbnails" "--convert-thumbnails" "png")
@@ -79,36 +79,40 @@ ytdl ()
     # Also needed is a followup with jq -r .url
     PLAYLIST_DISPLAY_URLS_ARGS+=("--flat-playlist" "-j")
 
-# Bring in arguments from $YTDL_ARGUMENTS
+    # Bring in arguments from $YTDL_ARGUMENTS
 
-if [[ -n "$YTDL_ARGUMENTS" ]]; then
-    set -- $YTDL_ARGUMENTS "$@"
-fi
-
-TMPDIRBASE=""
-TMPDIR=""
-case $1 in
--t|--tmpdir) TMPDIRBASE=$2; shift; shift
-
-   # Check if the directory exists and is writable
-    if [ ! -d "$TMPDIRBASE" ] || [ ! -w "$TMPDIRBASE" ]; then
-        echo "Error: '$TMPDIRBASE' is not a writable directory."
-        return 1
+    if [[ -n "$YTDL_ARGUMENTS" ]]; then
+        set -- $YTDL_ARGUMENTS "$@"
     fi
 
-   # Create a unique temporary directory
-    local TMPDIR
-    TMPDIR=$(mktemp -d "$TMPDIRBASE/tmp.ytdl.$(date +"%Y%m%d_%H%M%S").XXXXXX")
+    TMPDIRBASE=""
+    TMPDIR=""
+    case $1 in
+        -t | --tmpdir)
+            TMPDIRBASE=$2
+            shift
+            shift
 
-    if [ ! -d "$TMPDIR" ]; then
-        echo "Error: Failed to create temporary directory."
-        return 1
-    fi
+            # Check if the directory exists and is writable
+            if [ ! -d "$TMPDIRBASE" ] || [ ! -w "$TMPDIRBASE" ]; then
+                echo "Error: '$TMPDIRBASE' is not a writable directory."
+                return 1
+            fi
 
-;;
-*)
-;;
-esac
+            # Create a unique temporary directory
+            local TMPDIR
+            TMPDIR=$(mktemp -d "$TMPDIRBASE/tmp.ytdl.$(date +"%Y%m%d_%H%M%S").XXXXXX")
+
+            if [ ! -d "$TMPDIR" ]; then
+                echo "Error: Failed to create temporary directory."
+                return 1
+            fi
+
+        ;;
+        *)
+
+        ;;
+    esac
 
     # Process each URL passed as an argument
     while [ -n "$1" ]; do
@@ -132,12 +136,12 @@ esac
         # Extract a usable video handle for use in finding this content after downloads complete
         case "${URL}" in
 
-# *youtube.com/watch?v=*&list=PL*)
-# Do we add in a playlist grabber for any urls pasted in with a playlist on the end, such as:
-# https://www.youtube.com/watch?v=1FmBL5nAuaU&list=PLFVmIxMkvVDJwXMrAxgZfmpoW214Qa_EI
-# lol, well, I guess no. You must explicity specify by giving a /playlist? url
-# otherwise we'll just eventually run out of disk space on stuff we may not be interested in
-# ;;
+            # *youtube.com/watch?v=*&list=PL*)
+            # Do we add in a playlist grabber for any urls pasted in with a playlist on the end, such as:
+            # https://www.youtube.com/watch?v=1FmBL5nAuaU&list=PLFVmIxMkvVDJwXMrAxgZfmpoW214Qa_EI
+            # lol, well, I guess no. You must explicity specify by giving a /playlist? url
+            # otherwise we'll just eventually run out of disk space on stuff we may not be interested in
+            # ;;
 
             *youtube.com/shorts/*)
                 VIDEO_HANDLE="[${URL##*/}]"
@@ -164,8 +168,8 @@ esac
         (
             cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
 
- # Change into the temporary directory
-    cd "${TMPDIR}" || return 1
+            # Change into the temporary directory
+            cd "${TMPDIR}" || return 1
 
             DATESTAMP_NOW=$(date "+%Y-%m-%d %H:%M:%S %a")
 
