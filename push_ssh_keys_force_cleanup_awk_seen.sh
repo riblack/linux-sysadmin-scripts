@@ -4,6 +4,12 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # You need to monitor the output of mkdir and cp to make sure it is successful.
+# If the backup gets derailed you could open a 2nd terminal, correct the /data/backups directory
+# by creating it and possibly chmod or whatever is needed to give yourself access
+# then perform the backup to there
+# verify the backup looks good
+# then let this script continue
+
 # Interactively allow you to 
 # * make a backup of the authorized_keys file and
 # * edit each file to make sure they are uniq
