@@ -23,10 +23,14 @@ ytdl ()
     VIDEO_DOWNLOADER_COMMAND_ARGS=()
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--mtime")
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader" "http:ffmpeg")
-    VIDEO_DOWNLOADER_COMMAND_ARGS+=("-k" "--format" "mp4")
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("-k")
 
     # -x -k --audio-format mp3 --audio-quality 192K --format mp4
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-x" "--audio-format" "mp3" "--audio-quality" "192K")
+
+    # Video and Audio
+    # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--format" "mp4")
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--format" "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best")
 
     #VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-all-thumbnails" "--convert-thumbnails" "png")
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-all-thumbnails")
@@ -221,7 +225,9 @@ ytdl ()
             # The following is not useful for initial processing of the youtube playlist.
 
             # Perform the downloads for this single URL
+set -xv
             ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
+set +xv
 
             # Get the earliest datestamp for this particular VIDEO_HANLE
             FILE_DATESTAMP_EARLIEST=$(find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -printf "%T@ %p\n" | sort -n | head -n 1)
