@@ -94,8 +94,7 @@ ytdl ()
     case $1 in
         -t | --tmpdir)
             TMPDIRBASE=$2
-            shift
-            shift
+            shift 2
 
             # Check if the directory exists and is writable
             if [ ! -d "$TMPDIRBASE" ] || [ ! -w "$TMPDIRBASE" ]; then
@@ -111,6 +110,12 @@ ytdl ()
                 echo "Error: Failed to create temporary directory."
                 return 1
             fi
+        -b | --browser)
+            local USE_BROWSER=true
+            local BROWSER_VALUE=$2
+            VIDEO_DOWNLOADER_COMMAND_ARGS+=("--cookies-from-browser" "$BROWSER_VALUE") # man yt-dlp
+            PLAYLIST_SAVE_LIST_TO_FILE_ARGS+=("--cookies-from-browser" "$BROWSER_VALUE") # man yt-dlp
+            shift 2
 
         ;;
         *)
