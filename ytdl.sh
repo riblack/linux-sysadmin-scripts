@@ -378,14 +378,15 @@ EOF
             fi
 
             # Function to move files and avoid overwriting
-            move_with_suffix() {
+            move_with_suffix ()
+{
                 local src_file=$1
                 local dest_dir=$2
                 local base_name=$(basename "$src_file")
                 local name="${base_name%.*}"   # Filename without extension
                 local ext="${base_name##*.}"   # File extension
                 local target="${dest_dir}/${base_name}"
-            
+
                 # Check for file conflicts and resolve with incrementing suffix
                 if [[ -e "$target" ]]; then
                     local count=1
@@ -394,7 +395,7 @@ EOF
                     done
                     target="${dest_dir}/${name} (${count}).${ext}"
                 fi
-            
+
                 # Move the file to the resolved target path
                 mv -v "$src_file" "$target"
             }
