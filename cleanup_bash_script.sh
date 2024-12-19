@@ -1,3 +1,6 @@
+# Overview: The function of this script is to automatically perform some manual cleanup tasks so that 
+#     we are on common ground (spacing, etc) between the editing styles of myself, declare -f, and chatgpt.
+
 # Add a space between the bash function name and the ().
 # Add a newline (\n) between () and { when there is a space in between.
 # Remove trailing spaces and tabs from each line.
