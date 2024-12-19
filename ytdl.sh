@@ -26,7 +26,8 @@ ytdl ()
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-k")
 
     # -x -k --audio-format mp3 --audio-quality 192K --format mp4
-    VIDEO_DOWNLOADER_COMMAND_ARGS+=("-x" "--audio-format" "mp3" "--audio-quality" "192K")
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("-x")
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--audio-format" "mp3" "--audio-quality" "192K")
 
     # Video and Audio
     # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--format" "mp4")
@@ -45,6 +46,33 @@ ytdl ()
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v verbose -bitexact")	# ffmpeg -bitexact with verbose
     # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v debug -bitexact")	# ffmpeg -bitexact with debug
     # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v trace -bitexact")	# ffmpeg -bitexact with debug
+
+            VIDEOS_FILE_EXTENSIONS=$(cat <<'EOF'
+.mp4
+EOF
+            )
+
+            AUDIOS_FILE_EXTENSIONS=$(cat <<'EOF'
+.mp3
+.m4a
+EOF
+            )
+
+            THUMBNAIL_FILE_EXTENSIONS=$(cat <<'EOF'
+.jpg
+.jpeg
+.png
+.webp
+EOF
+            )
+
+            SUBTITLE_FILE_EXTENSIONS=$(cat <<'EOF'
+.vtt
+.srt
+.ass
+.lrc
+EOF
+            )
 
     # Check if at least one argument is provided
     if [ $# -eq 0 ]; then
@@ -65,7 +93,6 @@ ytdl ()
 
     # Set parameters needed for when we will download a playlist
 
-    unset PLAYLIST_SAVE_LIST_TO_FILE_ARGS
     PLAYLIST_SAVE_LIST_TO_FILE_ARGS=()
 
     # I don't know if --mtime works for playlists, but here is hoping it does:
@@ -76,7 +103,6 @@ ytdl ()
     # The following are commands needed to save the playlist entries to a local file.
     PLAYLIST_SAVE_LIST_TO_FILE_ARGS+=("--skip-download" "-s" "--print-to-file" "|%(playlist_index)03d|%(uploader)s|%(title)s|%(uploader_id)s|%(upload_date,release_date)s|%(duration>%H:%M:%S)s|" "${PLAYLISTS_DIRECTORY}/%(playlist)s.txt" "--replace-in-metadata" "title" "[\|]+" "-")
 
-    unset PLAYLIST_DISPLAY_URLS_ARGS
     PLAYLIST_DISPLAY_URLS_ARGS=()
 
     # The following are commands needed to display the URLs in the playlist
@@ -110,6 +136,8 @@ ytdl ()
                 echo "Error: Failed to create temporary directory."
                 return 1
             fi
+
+        ;;
         -b | --browser)
             local USE_BROWSER=true
             local BROWSER_VALUE=$2
@@ -175,10 +203,14 @@ ytdl ()
         esac
 
         (
-            cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
 
-            # Change into the temporary directory
-            cd "${TMPDIR}" || return 1
+            if [[ -n "${TMPDIR}" ]]; then
+                # Change into the temporary directory
+                cd "${TMPDIR}" || return 1
+            else
+                # Change to video directory
+                cd "${DOMAIN_VIDEOS_DIRECTORY}" || exit 1
+            fi
 
             DATESTAMP_NOW=$(date "+%Y-%m-%d %H:%M:%S %a")
 
@@ -230,63 +262,73 @@ ytdl ()
             # The following is not useful for initial processing of the youtube playlist.
 
             # Perform the downloads for this single URL
-set -xv
+            set -xv
             ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || echo "Failed to download: ${URL}"
-set +xv
+            set +xv
 
             # Get the earliest datestamp for this particular VIDEO_HANLE
             FILE_DATESTAMP_EARLIEST=$(find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -printf "%T@ %p\n" | sort -n | head -n 1)
             FILE_DATESTAMP_EARLIEST="${FILE_DATESTAMP_EARLIEST%% *}"
 
+            # Locate the audio file so we can extract audio
+            AUDIO_FILE=$(find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -printf "%p\n" | grep "${AUDIOS_FILE_EXTENSIONS}" | sort -n | head -n 1)
+
+            # Use ffmpeg to extract the audio from the video into .mp3, 192k
+            output_audio_filename="${AUDIO_FILE%\.[^\\.]*}.mp3"
+            tmp_name="${output_audio_filename%.*.*}"
+            tmp_ext="${output_audio_filename##*.}"
+            mp3_filename="${tmp_name}.${tmp_ext}"
+            ffmpeg -n -i "${AUDIO_FILE}" -vn -ab 192000 "${output_audio_filename}" && rm -v "${AUDIO_FILE}"
+            # Rename without the .f140 portion just before .mp3
+            mv -v "${output_audio_filename}" "${mp3_filename}"
+
             # Apply this timestamp to all files with this VIDEO_HANDLE - this code is optional and is standalone
             find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -exec touch -d "@${FILE_DATESTAMP_EARLIEST}" {} \;
 
-            # Move video files
+            # Move desired video file and remove the others
             VIDEOS_DIRECTORY=videos
             VIDEOS_WORD=videos
             mkdir -p "${VIDEOS_DIRECTORY}"
-
-            VIDEOS_FILE_EXTENSIONS=$(cat <<'EOF'
-.mp4
-EOF
-            )
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${VIDEOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
             FIND_VIDEOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
 find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
-            eval $FIND_VIDEOS_COMMAND | tr '\n' '\0' | xargs -0 -r -I{} mv -v "{}" "${VIDEOS_DIRECTORY}"
 
-            # Move audio files
+            local VIDEOS_LIST=()
+            VIDEOS_LIST=("$(eval $FIND_VIDEOS_COMMAND | grep '\]\.mp4$')")
+            VIDEOS_LIST+=("$(eval $FIND_VIDEOS_COMMAND | grep -v '\]\.mp4$')")
+            mv -v "${VIDEOS_LIST[0]}" "${VIDEOS_DIRECTORY}"
+
+            for ((i = 1; i < ${#VIDEOS_LIST[@]}; i++)); do
+                rm -v "${VIDEOS_LIST[i]}"
+            done
+
+            # Move desired audio file and remove the others
             AUDIOS_DIRECTORY=audios
             AUDIOS_WORD=audios
             mkdir -p "${AUDIOS_DIRECTORY}"
-
-            AUDIOS_FILE_EXTENSIONS=$(cat <<'EOF'
-.mp3
-EOF
-            )
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${AUDIOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
             FIND_AUDIOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
 find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
-            eval $FIND_AUDIOS_COMMAND | tr '\n' '\0' | xargs -0 -r -I{} mv -v "{}" "${AUDIOS_DIRECTORY}"
+
+            local AUDIOS_LIST=()
+            AUDIOS_LIST=("$(eval $FIND_AUDIOS_COMMAND | grep '\]\.mp3$')")
+            AUDIOS_LIST+=("$(eval $FIND_AUDIOS_COMMAND | grep -v '\]\.mp3$')")
+            mv -v "${AUDIOS_LIST[0]}" "${AUDIOS_DIRECTORY}"
+
+            for ((i = 1; i < ${#AUDIOS_LIST[@]}; i++)); do
+                rm -v "${AUDIOS_LIST[i]}"
+            done
 
             # Archiving thumbnails
             THUMBNAILS_DIRECTORY=thumbnails
             THUMBNAILS_WORD=thumbnails
             mkdir -p "${THUMBNAILS_DIRECTORY}"
-
-            THUMBNAIL_FILE_EXTENSIONS=$(cat <<'EOF'
-.jpg
-.jpeg
-.png
-.webp
-EOF
-            )
 
             THUMBNAILS_ARCHIVE_FILE="${VIDEO_HANDLE}_$(date -d "@${FILE_DATESTAMP_EARLIEST}" "+%Y%m%d_%H%M%S")_${THUMBNAILS_WORD}.tgz"
 
@@ -314,14 +356,6 @@ EOF
             SUBTITLES_WORD=subtitles
             mkdir -p "${SUBTITLES_DIRECTORY}"
 
-            SUBTITLE_FILE_EXTENSIONS=$(cat <<'EOF'
-.vtt
-.srt
-.ass
-.lrc
-EOF
-            )
-
             SUBTITLES_ARCHIVE_FILE="${VIDEO_HANDLE}_$(date -d "@${FILE_DATESTAMP_EARLIEST}" "+%Y%m%d_%H%M%S")_${SUBTITLES_WORD}.tgz"
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${SUBTITLE_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
@@ -341,6 +375,52 @@ EOF
                 echo "$SUBTITLE_FILES" | tr '\n' '\0' | xargs -0 -r -I{} rm "{}"
             else
                 echo "No subtitle files found for processing."
+            fi
+
+            # Function to move files and avoid overwriting
+            move_with_suffix() {
+                local src_file=$1
+                local dest_dir=$2
+                local base_name=$(basename "$src_file")
+                local name="${base_name%.*}"   # Filename without extension
+                local ext="${base_name##*.}"   # File extension
+                local target="${dest_dir}/${base_name}"
+            
+                # Check for file conflicts and resolve with incrementing suffix
+                if [[ -e "$target" ]]; then
+                    local count=1
+                    while [[ -e "${dest_dir}/${name} (${count}).${ext}" ]]; do
+                        ((count++))
+                    done
+                    target="${dest_dir}/${name} (${count}).${ext}"
+                fi
+            
+                # Move the file to the resolved target path
+                mv -v "$src_file" "$target"
+            }
+
+            shopt -s nullglob
+
+            if [[ -n "${TMPDIR}" ]]; then
+                for dir in videos audios subtitles thumbnails; do
+                    # Ensure the destination directory exists
+                    mkdir -p "${DOMAIN_VIDEOS_DIRECTORY}/$dir"
+
+                    # Process files in the current source directory
+                    if compgen -G "${TMPDIR}/$dir/*" > /dev/null; then
+                        for file in "${TMPDIR}/$dir/"*; do
+                            move_with_suffix "$file" "${DOMAIN_VIDEOS_DIRECTORY}/$dir"
+                        done
+                    else
+                        echo "No files to move from ${TMPDIR}/$dir/."
+                    fi
+
+                    # Remove the now-empty source directory
+                    rmdir "${TMPDIR}/$dir"
+                done
+                rmdir "${TMPDIR}"
+            else
+                :
             fi
 
         )
