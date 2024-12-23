@@ -1,0 +1,4 @@
+# Color codes for feedback
+green="\e[32m"
+red="\e[31m"
+reset="\e[0m"
