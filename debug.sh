@@ -3,11 +3,15 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Debug function to display debug messages only when debug mode is enabled
+# Debug function to run or display debug messages only when debug mode is enabled
 debug ()
 {
     if [ "${DEBUG_MODE:=0}" -eq 1 ]; then
-        echo "DEBUG: $@" 1>&2
+        if type "$1" &> /dev/null; then
+            "$@"
+        else
+            echo "DEBUG: $@" 1>&2
+        fi
     fi
 }
 
