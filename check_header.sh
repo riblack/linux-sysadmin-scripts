@@ -10,7 +10,7 @@ check_header() {
     local script="$1"
 
     # Template for header
-    HEADER_TEMPLATE="bash_header.template"
+    HEADER_TEMPLATE="bash_header.template.stub"
 
     local lines_in_header=$(wc -l < "$HEADER_TEMPLATE")
     if ! head -n "$lines_in_header" "$script" | diff -q "$HEADER_TEMPLATE" - >/dev/null; then

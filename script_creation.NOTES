@@ -188,8 +188,8 @@ will allow you to leave the debug code in place and it only
 activates when you turn on debug mode
 
 For my methodology of creating scripts I have my standard template 
-for header and footer stored in bash_header.template and 
-bash_footer.template*
+for header and footer stored in bash_header.template.stub and 
+bash_footer.template.stub
 
 Other methodologies I use
 * idempotent concept in my code
