@@ -8,6 +8,11 @@ sort_files_into_dirs ()
     find . -maxdepth 1 -type f -printf "%TY/%Tm/%Td %p\\0" | xargs -0 -r -I{} bash -c 'mk_specified_dir_and_move_file ()
 {
     while read dir file 0<&3; do
+        case $file in
+            # Skip files in progress of being downloaded
+            "Unconfirmed [0-9][0-9]*") continue ;;
+            *) : ;;
+        esac
         mkdir -p "$dir";
         mv -vi "$file" "$dir/";
     done 3< <( echo "{}" )
