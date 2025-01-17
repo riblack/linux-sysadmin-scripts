@@ -60,6 +60,13 @@ create_ssh_structure ()
     fi
     chown "$target_user":"$target_user" "$home_dir/.ssh/known_hosts"
     chmod 0600 "$home_dir/.ssh/known_hosts"
+
+    # Create $home_dir/.ssh/config if it doesn't exist
+    if [ ! -e "$home_dir/.ssh/config" ]; then
+        touch "$home_dir/.ssh/config"
+    fi
+    chown "$target_user":"$target_user" "$home_dir/.ssh/config"
+    chmod 0600 "$home_dir/.ssh/config"
 }
 
 # Export the function for use in the current shell
