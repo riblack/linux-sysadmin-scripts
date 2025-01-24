@@ -4,8 +4,15 @@
 function_name="${BASH_SOURCE[1]##*/}"     # Get the script name without path
 function_name="${function_name%.sh}"      # Remove the .sh extension
 
+# Check if the function exists in the current scope
+if ! declare -F "${function_name}" > /dev/null; then
+    echo "Error: Function '${function_name}' is not defined in '${BASH_SOURCE[1]}'." >&2
+    echo "Hint: Ensure the function name matches the script name without the '.sh' extension." >&2
+    exit 1
+fi
+
+# If the script is being run directly, call the function with all arguments
 if [[ "${BASH_SOURCE[1]}" == "${0}" ]]; then
-    # If the script is being run directly, call the function with all arguments
     "${function_name}" "$@"
 fi
 
