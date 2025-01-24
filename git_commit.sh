@@ -3,111 +3,95 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# FIXME: todo, need to parrot back which files we will be updating through this process
-# FIXME: possibly incorporate git diff, or at least ask if you want to see a diff
+. ./backup_files.sh
+. ./check_git_config.sh
+. ./stage_files.sh
+. ./create_commit_template.sh
 
-# Function to handle git commit
 git_commit ()
 {
-    # Check if file(s) are specified
-    [[ -n "$1" ]] || {
-        git status
-        printf "%s\n" "Specify the file(s) to stage and commit."
-        return 1
-    }
 
-    # Prepare the list of files to stage
-    file_list=$(while [[ -n "$1" ]]; do echo "$1"; shift; done)
+    # Initialize the files array with command-line arguments
+    local files=("$@")
 
-    # Backup files
-    mkdir -p /data/backups
-    while IFS= read -r file 0<&3; do
-        cp -avi "$file" "/data/backups/${file}_$(date "+%Y%m%d_%H%M%S").bak"
-    done 3< <(echo "$file_list")
+    # Add files already staged in "git add" section
+    mapfile -t staged_files < <(git diff --cached --name-only)
 
-    # Show status
+    # Combine command-line files and staged files, avoiding duplicates
+    for staged_file in "${staged_files[@]}"; do
+        if [[ ! " ${files[*]} " =~ " $staged_file " ]]; then
+            files+=("$staged_file")
+        fi
+    done
+
+    # Debug output for collected files
+    echo "Files to back up and commit:"
+    printf "  %s\n" "${files[@]}"
+
+    echo "Step 1: Backing up specified and staged files..."
+    backup_files "${files[@]}"
+
+    echo "Step 2: Checking Git configuration..."
+    check_git_config
+
+    echo "Step 3: Checking Git repository status..."
     git status
+    echo
 
-    # Prompt to proceed
-    read -p "Pausing for you to review the above status. Press Enter to continue to git pull, or Ctrl+C to abort."
+    echo "Step 4: Pulling latest changes from the remote repository..."
+    git pull || { echo "Error: Failed to pull changes."; exit 1; }
+    echo
 
-    # Pull the latest changes
-    git pull
-    read -p "Git pull complete. Press Enter to continue, or Ctrl+C to abort."
+    echo "Step 5: Staging files for commit..."
+    stage_files "${files[@]}"
+    echo
 
-    # Show status
-    git status
-
-    # Prompt to proceed
-    read -p "Pausing for you to review the above status. Press Enter to continue to git add the files, or Ctrl+C to abort."
-
-    # Stage the files
-    git add $file_list
-    echo "Files staged: $file_list"
-    git status
-    read -p "Pausing for you to review staged files. Press Enter to continue, or Ctrl+C to abort."
-
-    # Create a temporary file for the commit message template
-    template=$(mktemp)
-    cat ~/.gitmessage.txt > "$template"
-
-    # Append git status and diff to the template
-    {
-        echo
-        echo "# Status:"
-        git status
-        echo
-        echo "# Changes:"
-        git diff --staged
-    } >> "$template"
-
-    # Open the commit message template in vim
+    echo "Step 6: Creating commit message template..."
+    local template
+    template=$(create_commit_template)
+    echo "Opening commit message editor..."
     vim "$template"
 
-    # Extract the message (discarding comments)
-    message=$(sed '/^#/d' "$template")
-
-    # Check if the message is empty
-    if [[ -z "$message" ]]; then
-        echo "Empty commit message. Aborting."
+    echo "Step 7: Validating and applying commit message..."
+    local commit_message
+    commit_message=$(sed '/^#/d' "$template")
+    # Check if the commit_message is empty
+    if [[ -z "$commit_message" ]]; then
+        echo "Error: Empty commit message. Aborting commit."
         rm -f "$template"
         return 1
     fi
 
-    # One last chance to abort the got commit
-    read -p "Press enter when ready to proceed with the git commit (Ctrl+C to abort). "
+    echo "Commit message preview:"
+    echo "-----------------------"
+    echo "$commit_message"
+    echo "-----------------------"
+    read -p "Proceed with commit? (y/n): " confirm
+    if [[ "$confirm" != "y" ]]; then
+        echo "Aborting commit."
+        rm -f "$template"
+        exit 1
+    fi
 
     # Perform the commit
-    echo "$message" | git commit -F -
-
-    read -p "git commit complete. (enter to continue)" pause
-
-    # Show status
-    git status
-
-    # Prompt to proceed
-    read -p "Pausing for you to review the above status. Press Enter to continue, or Ctrl+C to abort."
+    git commit -F "$template"
 
     # Cleanup
     rm -f "$template"
-    echo "Commit complete."
+    echo "Commit completed successfully."
+    echo
 
-    # Push the changes
-    read -p "Ready to push changes. Press Enter to continue, or Ctrl+C to abort."
-    git push
+    echo "Step 8: Pushing changes to the remote repository..."
+    git push || { echo "Error: Failed to push changes."; exit 1; }
+    echo
 
-    # Prompt to proceed
-    read -p "Pausing for you to review the above git push results. Press Enter to continue, or Ctrl+C to abort."
+    echo "Step 9: Pulling latest changes after push to sync repository..."
+    git pull || { echo "Error: Failed to pull changes."; exit 1; }
+    echo
 
-    # Final status
+    echo "Step 10: Final repository status:"
     git status
-    read -p "Git push complete. Press Enter to finish, or Ctrl+C to abort."
-
-    git pull
-    read -p "git pull complete. (enter to continue)" pause
-
-    git status
-    read -p "Pausing for a moment for you to read the above status before returning. (enter to continue)" pause
+    echo "Workflow completed successfully."
 }
 
 # Source footer if it exists
