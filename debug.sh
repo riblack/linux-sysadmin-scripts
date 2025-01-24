@@ -8,7 +8,7 @@ debug ()
 {
     if [ "${DEBUG_MODE:=0}" -eq 1 ]; then
         if type "$1" &> /dev/null; then
-            "$@"
+            "$@" 2>&1 | sed -e "s,^,DEBUG: ," 1>&2
         else
             echo "DEBUG: $@" 1>&2
         fi
