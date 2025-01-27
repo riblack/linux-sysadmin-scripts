@@ -3,13 +3,22 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+. ./load_color_codes.def
 . ./backup_files.sh
 . ./check_git_config.sh
 . ./stage_files.sh
 . ./create_commit_template.sh
+. ./ensure_git_directory.sh
 
 git_commit ()
 {
+    echo "Ensuring the script is running in a Git repository..."
+    if ! ensure_git_directory; then
+        echo -e "${red}Exiting script due to missing Git repository.${reset}"
+        return 1
+    fi
+
+    echo -e "${green}This is a valid Git repository.${reset}"
 
     # Initialize the files array with command-line arguments
     local files=("$@")
@@ -19,7 +28,7 @@ git_commit ()
 
     # Combine command-line files and staged files, avoiding duplicates
     for staged_file in "${staged_files[@]}"; do
-        if [[ ! " ${files[*]} " =~ " $staged_file " ]]; then
+        if ! printf '%s\n' "${files[@]}" | grep -q -F -- "$staged_file"; then
             files+=("$staged_file")
         fi
     done
@@ -48,19 +57,53 @@ git_commit ()
 
     echo "Step 6: Creating commit message template..."
     local template
-    template=$(create_commit_template)
-    echo "Opening commit message editor..."
-    vim "$template"
+    create_commit_template template  # Pass template as a reference
 
     echo "Step 7: Validating and applying commit message..."
+    # Remove comments, trailing spaces, and blank lines at the bottom
     local commit_message
-    commit_message=$(sed '/^#/d' "$template")
-    # Check if the commit_message is empty
-    if [[ -z "$commit_message" ]]; then
-        echo "Error: Empty commit message. Aborting commit."
+    commit_message=$(sed -e '/^#/d' \
+                         -e 's/[[:space:]]*$//' \
+                         -e '/^$/d' \
+                         "$template")
+
+    # Split commit message into subject and body
+    local subject_line body_lines
+    subject_line=$(echo "$commit_message" | sed -n '1p')
+    body_lines=$(echo "$commit_message" | sed -n '2,$p')
+
+    # Automatically enforce no period at the end of the subject line
+    if [[ "$subject_line" =~ \.$ ]]; then
+        echo "Warning: Subject line ends with a period. Removing the period."
+        subject_line=${subject_line%.}
+    fi
+
+    # Validate subject line length
+    if [[ ${#subject_line} -gt 50 ]]; then
+        echo "Warning: Subject line exceeds 50 characters (${#subject_line})."
+    fi
+
+    # Validate body line lengths
+    if echo "$body_lines" | grep -q '.\{73\}'; then
+        echo "Warning: One or more body lines exceed 72 characters."
+    fi
+
+    # Ensure the subject line and body are not empty
+    if [[ -z "$subject_line" ]]; then
+        echo "Error: Commit message must have a subject line."
         rm -f "$template"
         return 1
     fi
+    if [[ -z "$body_lines" ]]; then
+        echo "Error: Commit message must have a body after the subject line."
+        rm -f "$template"
+        return 1
+    fi
+
+    # Reconstruct the commit message
+    commit_message="${subject_line}
+
+${body_lines}"
 
     echo "Commit message preview:"
     echo "-----------------------"
@@ -74,7 +117,7 @@ git_commit ()
     fi
 
     # Perform the commit
-    git commit -F "$template"
+    echo "$commit_message" | git commit -F -
 
     # Cleanup
     rm -f "$template"
@@ -98,6 +141,7 @@ git_commit ()
 if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
     source "$SCRIPT_DIR/bash_footer.template.live"
 else
-    echo "Footer template missing. Skipping..."
+    echo -e "${red}Footer template missing. Skipping...${reset}"
+    echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
 
