@@ -73,7 +73,9 @@ git_commit ()
     # Split commit message into subject and body
     local subject_line body_lines
     subject_line=$(echo "$commit_message" | sed -n '1p')
-    body_lines=$(echo "$commit_message" | sed -n '2,$p')
+    body_lines=$(echo "$commit_message" \
+                         | sed -e '1d' \
+                         | awk 'NF {p=1} p')
 
     # Automatically enforce no period at the end of the subject line
     if [[ "$subject_line" =~ \.$ ]]; then
