@@ -64,8 +64,11 @@ git_commit ()
     local commit_message
     commit_message=$(sed -e '/^#/d' \
                          -e 's/[[:space:]]*$//' \
-                         -e '/^$/d' \
-                         "$template")
+                         "$template" \
+                         | awk 'NF {p=1} p' \
+                         | tac \
+                         | awk 'NF {p=1} p' \
+                         | tac)
 
     # Split commit message into subject and body
     local subject_line body_lines
