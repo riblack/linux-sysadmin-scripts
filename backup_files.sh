@@ -3,7 +3,7 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-. ./load_color_codes.def
+. "$SCRIPT_DIR/load_color_codes.def"
 
 # Function to backup files
 backup_files ()
