@@ -3,9 +3,11 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-. ./debug.sh
-. ./grab_certificate.sh
-. ./NOTES.sh
+. "$SCRIPT_DIR/load_color_codes.def"
+. "$SCRIPT_DIR/debug.sh"
+. "$SCRIPT_DIR/requires.sh"
+. "$SCRIPT_DIR/grab_certificate.sh"
+. "$SCRIPT_DIR/NOTES.sh"
 
 NOTES oVirt Version 4.5.6-1.el8
 NOTES OVIRT_HOSTNAME="<FQDN>"
@@ -14,6 +16,8 @@ NOTES OVIRT_USERNAME="<username>@internalsso"
 
 # Function to interact with oVirt API
 ovirt_api_vms() {
+    # Check for 'jq' command, package name is also 'jq' in this case
+    requires jq jq || return 1
 
     local GLOBAL_CONFIG="/etc/lss.conf"
     local USER_CONFIG="$HOME/.config/lss/lss.conf"
@@ -28,6 +32,7 @@ ovirt_api_vms() {
         source "$USER_CONFIG"
     fi
 
+    # Prompt for oVirt details if not already set
     OVIRT_HOSTNAME="${OVIRT_HOSTNAME:-}"
     OVIRT_URL="${OVIRT_URL:-}"
     OVIRT_USERNAME="${OVIRT_USERNAME:-}"
@@ -47,7 +52,7 @@ ovirt_api_vms() {
         export OVIRT_USERNAME
     fi
 
-    # Read password if not already set
+    # Get oVirt password if not already set
     if [[ -z "$OVIRT_PASSWORD" ]]; then
         read -s -p "Enter oVirt password for user $OVIRT_USERNAME: " OVIRT_PASSWORD
         echo
@@ -56,9 +61,8 @@ ovirt_api_vms() {
         echo "oVirt password for $OVIRT_USERNAME is already set."
     fi
 
-    local cert_file="ovirt-manager.pem"
-
     # Grab the certificate if not already present
+    local cert_file="ovirt-manager.pem"
     grab_certificate "$cert_file" "$OVIRT_HOSTNAME" || return 1
 
     # CURL configuration
@@ -130,6 +134,7 @@ ovirt_api_vms() {
 if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
     source "$SCRIPT_DIR/bash_footer.template.live"
 else
-    echo "Footer template missing. Skipping..."
+    echo -e "${red}Footer template missing. Skipping...${reset}"
+    echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
 
