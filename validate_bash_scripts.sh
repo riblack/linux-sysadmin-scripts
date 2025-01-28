@@ -3,13 +3,13 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-. check_file_exists.sh
-. check_extension.sh
-. check_executable.sh
-. check_header.sh
-. check_footer.sh
-. check_function_name.sh
-. load_color_codes.def
+. "$SCRIPT_DIR/load_color_codes.def"
+. "$SCRIPT_DIR/check_file_exists.sh"
+. "$SCRIPT_DIR/check_extension.sh"
+. "$SCRIPT_DIR/check_executable.sh"
+. "$SCRIPT_DIR/check_header.sh"
+. "$SCRIPT_DIR/check_footer.sh"
+. "$SCRIPT_DIR/check_function_name.sh"
 
 # Validate a Bash scripts
 validate_bash_scripts ()
@@ -46,6 +46,7 @@ validate_bash_scripts ()
 if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
     source "$SCRIPT_DIR/bash_footer.template.live"
 else
-    echo "Footer template missing. Skipping..."
+    echo -e "${red}Footer template missing. Skipping...${reset}"
+    echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
 
