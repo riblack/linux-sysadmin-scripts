@@ -3,9 +3,20 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+. "$SCRIPT_DIR/load_color_codes.def"
+. "$SCRIPT_DIR/ensure_git_directory.sh"
+
 # Function to check git user configuration
 check_git_config ()
 {
+    echo "Ensuring the script is running in a Git repository..."
+    if ! ensure_git_directory; then
+        echo -e "${red}Exiting script due to missing Git repository.${reset}"
+        return 1
+    fi
+
+    echo -e "${green}This is a valid Git repository.${reset}"
+
     local name email
     name=$(git config --get user.name)
     email=$(git config --get user.email)
@@ -27,6 +38,7 @@ check_git_config ()
 if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
     source "$SCRIPT_DIR/bash_footer.template.live"
 else
-    echo "Footer template missing. Skipping..."
+    echo -e "${red}Footer template missing. Skipping...${reset}"
+    echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
 
