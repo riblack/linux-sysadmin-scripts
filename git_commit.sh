@@ -3,12 +3,12 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-. ./load_color_codes.def
-. ./backup_files.sh
-. ./check_git_config.sh
-. ./stage_files.sh
-. ./create_commit_template.sh
-. ./ensure_git_directory.sh
+. "$SCRIPT_DIR/load_color_codes.def"
+. "$SCRIPT_DIR/backup_files.sh"
+. "$SCRIPT_DIR/check_git_config.sh"
+. "$SCRIPT_DIR/stage_files.sh"
+. "$SCRIPT_DIR/create_commit_template.sh"
+. "$SCRIPT_DIR/ensure_git_directory.sh"
 
 git_commit ()
 {
