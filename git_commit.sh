@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/create_commit_template.sh"
 . "$SCRIPT_DIR/ensure_git_directory.sh"
 
+# Function to handle git commit
 git_commit ()
 {
     echo "Ensuring the script is running in a Git repository..."
