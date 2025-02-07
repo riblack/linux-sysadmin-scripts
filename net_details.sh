@@ -6,55 +6,65 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/load_color_codes.def"
 
 # Function to retrieve network details of a host (local or remote)
-net_details ()
+net_details.sh.2 ()
 {
     local target_host="$1"
     local is_remote=0
     local ssh_cmd=""
+    local output
 
     # Determine if running locally or via SSH
     if [[ -n "$target_host" && "$target_host" != "localhost" && "$target_host" != "$(hostname -f)" ]]; then
         is_remote=1
-        ssh_cmd="ssh -o BatchMode=yes -o ConnectTimeout=5 $target_host"
+        ssh_cmd="ssh -T -o BatchMode=yes -o ConnectTimeout=5 $target_host"
     fi
 
-    # Function to execute commands locally or remotely
-    run_cmd ()
-{
-        local cmd="$1"
-        if [[ "$is_remote" -eq 1 ]]; then
-            $ssh_cmd "$cmd"
-        else
-            eval "$cmd"
-        fi
-    }
+    if [[ "$is_remote" -eq 1 ]]; then
+        output=$($ssh_cmd bash <<'EOF'
+            fqdn=$(hostname -f 2>/dev/null || hostname)
+            ip=$(ip -4 addr show scope global | awk '/inet / {print $2}' | cut -d'/' -f1 | head -n1)
+            mac=$(ip link show | awk '/ether/ {print $2; exit}')
+            subnet=$(ip -4 addr show scope global | awk '/inet / {print $2}' | cut -d'/' -f2 | head -n1)
+            gw=$(ip route | awk '/default/ {print $3; exit}')
+            dns=$(awk '/^nameserver/ {print $2}' /etc/resolv.conf | tr '\n' ' ')
+            rev_dns=$(nslookup $ip 2>/dev/null | awk '/name =/ {print $4}')
+            uptime=$(uptime -p)
+            latency=$(ping -c 1 -W 1 $fqdn 2>/dev/null | awk -F'=' '/time=/{print $2}' | awk '{print $1 " ms"}')
 
-    # Gather data
-    local fqdn ip mac subnet gw dns rev_dns uptime latency
-    fqdn=$(run_cmd "hostname -f 2>/dev/null || hostname")
-    ip=$(run_cmd "ip -4 addr show scope global | awk '/inet / {print \$2}' | cut -d'/' -f1 | head -n1")
-    mac=$(run_cmd "ip link show | awk '/ether/ {print \$2; exit}'")
-    subnet=$(run_cmd "ip -4 addr show scope global | awk '/inet / {print \$2}' | cut -d'/' -f2 | head -n1")
-    gw=$(run_cmd "ip route | awk '/default/ {print \$3; exit}'")
-    dns=$(run_cmd "awk '/^nameserver/ {print \$2}' /etc/resolv.conf | tr '\n' ' '")
-    rev_dns=$(run_cmd "nslookup $ip 2>/dev/null | awk '/name =/ {print \$4}'")
-    uptime=$(run_cmd "uptime -p")
-    latency=$(run_cmd "ping -c 1 -W 1 $fqdn 2>/dev/null | awk -F'=' '/time=/{print \$2}' | awk '{print \$1 \" ms\"}'")
+            echo "$fqdn|$ip|$subnet|$mac|$gw|$dns|$rev_dns|$uptime|$latency"
+EOF
+        )
+    else
+        fqdn=$(hostname -f 2>/dev/null || hostname)
+        ip=$(ip -4 addr show scope global | awk '/inet / {print $2}' | cut -d'/' -f1 | head -n1)
+        mac=$(ip link show | awk '/ether/ {print $2; exit}')
+        subnet=$(ip -4 addr show scope global | awk '/inet / {print $2}' | cut -d'/' -f2 | head -n1)
+        gw=$(ip route | awk '/default/ {print $3; exit}')
+        dns=$(awk '/^nameserver/ {print $2}' /etc/resolv.conf | tr '\n' ' ')
+        rev_dns=$(nslookup $ip 2>/dev/null | awk '/name =/ {print $4}')
+        uptime=$(uptime -p)
+        latency=$(ping -c 1 -W 1 $fqdn 2>/dev/null | awk -F'=' '/time=/{print $2}' | awk '{print $1 " ms"}')
+
+        output="$fqdn|$ip|$subnet|$mac|$gw|$dns|$rev_dns|$uptime|$latency"
+    fi
+
+    # Parse the output
+    IFS='|' read -r fqdn ip subnet mac gw dns rev_dns uptime latency <<< "$output"
 
     # Output formatted details
     cat <<EOF
 -------------------------------------------------
   Host Network Details
 -------------------------------------------------
-  Hostname  : $fqdn
-  IP Addr   : $ip
-  Subnet    : /$subnet
-  MAC Addr  : $mac
-  Gateway   : $gw
-  DNS       : $dns
+  Hostname    : $fqdn
+  IP Addr     : $ip
+  Subnet      : /$subnet
+  MAC Addr    : $mac
+  Gateway     : $gw
+  DNS Servers : $dns
   Reverse DNS : ${rev_dns:-N/A}
-  Uptime    : $uptime
-  Ping Latency : ${latency:-Unreachable}
+  Uptime      : $uptime
+  Ping Latency: ${latency:-Unreachable}
 -------------------------------------------------
 EOF
 }
