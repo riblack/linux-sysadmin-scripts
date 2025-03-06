@@ -47,6 +47,8 @@ update_ubuntu ()
         ### # Alias to fwupdmgr update
         ### fwupdmgr upgrade
     }
+
+    command -v yt-dlp && sudo yt-dlp -U
 }
 
 # Source footer if it exists
