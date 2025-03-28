@@ -33,17 +33,14 @@ git_commit() {
         fi
     done
 
-    # Check if .sh files are missing +x and prompt to fix them
     # Auto-fix or warn about non-executable .sh files
     for file in "${files[@]}"; do
         if [[ "$file" == *.sh && -f "$file" && ! -x "$file" ]]; then
-            echo -e "${yellow}Warning:${reset} '$file' is not executable."
-            read -p "Do you want to set +x on '$file'? (y/n): " answer
-            if [[ "$answer" == "y" ]]; then
+            if [[ "$GIT_COMMIT_AUTOFIX_EXEC" == "1" ]]; then
                 chmod +x "$file"
-                echo "'$file' is now executable."
+                echo -e "${green}Auto-fixed +x:${reset} $file"
             else
-                echo "Skipping chmod on '$file'."
+                echo -e "${yellow}Warning:${reset} '$file' is not executable. Set +x manually or rerun with GIT_COMMIT_AUTOFIX_EXEC=1"
             fi
         fi
     done
