@@ -32,7 +32,7 @@ ssh_loop_vm_detect() {
 
         # Log just the hostname
         echo "$host" >>"output_${out_key}.out"
-    done 3<~/.ssh/SYSTEMS/servers.txt
+    done 3< <(cat ~/.ssh/SYSTEMS/{physical.txt,down.txt,kvm.txt})
 }
 
 # Source footer if it exists
