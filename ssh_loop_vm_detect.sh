@@ -10,23 +10,28 @@ ssh_loop_vm_detect() {
     while read -r host 0<&3; do
         echo "Checking $host..."
 
-        # Run detection script remotely
+        # Run detection script remotely and capture output + exit code
         output=$(ssh -o ConnectTimeout=5 "$host" 'bash -s' <detect_virtualization.sh 2>/dev/null)
+        ssh_exit=$?
 
-        # Print result to screen
+        if [ $ssh_exit -ne 0 ] || [ -z "$output" ]; then
+            echo -e "\e[1;31mTimeout or unreachable: $host\e[0m"
+            echo "$host" >>output_timeout.out
+            continue
+        fi
+
+        # Display full remote result to screen
         echo "$output"
 
-        # Extract TYPE line from output (last line)
+        # Extract TYPE line (structured result)
         type_line=$(echo "$output" | grep -E '^TYPE=')
-
-        # Get just the classification (e.g., physical, virtual:vmware, container:docker)
         type_value=${type_line#TYPE=}
 
-        # Use only the last part after ":" or full word if not present
+        # Get classification for output file (e.g., kvm, docker, physical)
         out_key=$(echo "$type_value" | awk -F: '{print $NF}')
 
-        # Write entire result to corresponding file
-        echo -e "[$host]\n$output\n" >>"output_${out_key}.out"
+        # Log just the hostname
+        echo "$host" >>"output_${out_key}.out"
     done 3<~/.ssh/SYSTEMS/servers.txt
 }
 
