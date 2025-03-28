@@ -11,8 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/ensure_git_directory.sh"
 
 # Function to handle git commit
-git_commit ()
-{
+git_commit() {
     echo "Ensuring the script is running in a Git repository..."
     if ! ensure_git_directory; then
         echo -e "${red}Exiting script due to missing Git repository.${reset}"
@@ -34,6 +33,21 @@ git_commit ()
         fi
     done
 
+    # Check if .sh files are missing +x and prompt to fix them
+    # Auto-fix or warn about non-executable .sh files
+    for file in "${files[@]}"; do
+        if [[ "$file" == *.sh && -f "$file" && ! -x "$file" ]]; then
+            echo -e "${yellow}Warning:${reset} '$file' is not executable."
+            read -p "Do you want to set +x on '$file'? (y/n): " answer
+            if [[ "$answer" == "y" ]]; then
+                chmod +x "$file"
+                echo "'$file' is now executable."
+            else
+                echo "Skipping chmod on '$file'."
+            fi
+        fi
+    done
+
     # Debug output for collected files
     echo "Files to back up and commit:"
     printf "  %s\n" "${files[@]}"
@@ -49,7 +63,10 @@ git_commit ()
     echo
 
     echo "Step 4: Pulling latest changes from the remote repository..."
-    git pull || { echo "Error: Failed to pull changes."; exit 1; }
+    git pull || {
+        echo "Error: Failed to pull changes."
+        exit 1
+    }
     echo
 
     echo "Step 5: Staging files for commit..."
@@ -58,25 +75,25 @@ git_commit ()
 
     echo "Step 6: Creating commit message template..."
     local template
-    create_commit_template template  # Pass template as a reference
+    create_commit_template template # Pass template as a reference
 
     echo "Step 7: Validating and applying commit message..."
     # Remove comments, trailing spaces, and blank lines at the bottom
     local commit_message
     commit_message=$(sed -e '/^#/d' \
-                         -e 's/[[:space:]]*$//' \
-                         "$template" \
-                         | awk 'NF {p=1} p' \
-                         | tac \
-                         | awk 'NF {p=1} p' \
-                         | tac)
+        -e 's/[[:space:]]*$//' \
+        "$template" \
+        | awk 'NF {p=1} p' \
+        | tac \
+        | awk 'NF {p=1} p' \
+        | tac)
 
     # Split commit message into subject and body
     local subject_line body_lines
     subject_line=$(echo "$commit_message" | sed -n '1p')
     body_lines=$(echo "$commit_message" \
-                         | sed -e '1d' \
-                         | awk 'NF {p=1} p')
+        | sed -e '1d' \
+        | awk 'NF {p=1} p')
 
     # Automatically enforce no period at the end of the subject line
     if [[ "$subject_line" =~ \.$ ]]; then
@@ -131,11 +148,17 @@ ${body_lines}"
     echo
 
     echo "Step 8: Pushing changes to the remote repository..."
-    git push || { echo "Error: Failed to push changes."; exit 1; }
+    git push || {
+        echo "Error: Failed to push changes."
+        exit 1
+    }
     echo
 
     echo "Step 9: Pulling latest changes after push to sync repository..."
-    git pull || { echo "Error: Failed to pull changes."; exit 1; }
+    git pull || {
+        echo "Error: Failed to pull changes."
+        exit 1
+    }
     echo
 
     echo "Step 10: Final repository status:"
@@ -150,4 +173,3 @@ else
     echo -e "${red}Footer template missing. Skipping...${reset}"
     echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
-
