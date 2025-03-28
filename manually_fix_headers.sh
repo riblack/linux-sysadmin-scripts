@@ -5,16 +5,31 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 . "$SCRIPT_DIR/load_color_codes.def"
 
+. ./lss_backup.sh
+
 manually_fix_headers() {
-    for f in *.sh; do
-        if ! ./check_header.sh "$f"; then
-            echo "Fixing header in $f..."
-            tmpfile=$(mktemp)
-            cat bash_header.template.stub "$f" >"$tmpfile"
-            mv -v "$tmpfile" "$f"
-            vim "$f"
-        else
-            continue
+
+    for script in *.sh; do
+        if ! ./check_header.sh "$script"; then
+            echo "Fixing header in $script..."
+
+            lss_backup_file "$script"
+
+            # Create and open patched version
+            script_basename="${script%.sh}"
+            temp_script="/tmp/${script_basename}_patched_$(date +%Y%m%d%H%M%S).sh"
+            cat bash_header.template.stub "$script" >"$temp_script"
+            initial_mtime=$(stat -c %Y "$temp_script")
+
+            vim "$temp_script"
+
+            if [[ "$(stat -c %Y "$temp_script")" -ne "$initial_mtime" ]]; then
+                mv "$temp_script" "$script"
+                echo "Updated $script"
+            else
+                echo "No changes saved — skipping overwrite"
+                rm "$temp_script"
+            fi
         fi
     done
 }
