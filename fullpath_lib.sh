@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# shellcheck source=colors.sh
+source "${script_dir}/colors.sh"
+
 print_usage() {
     cat <<EOF
 Usage: fullpath.sh [OPTIONS] [file...]
@@ -26,10 +29,10 @@ get_fqdn() {
 
 setup_colors() {
     if [[ "$1" == "yes" ]]; then
-        color_path="\033[1;37m" # bold white
-        color_info="\033[0;36m" # cyan
-        color_md5="\033[0;33m"  # yellow
-        color_reset="\033[0m"
+        color_path="${fg_bwhite}"
+        color_info="${fg_cyan}"
+        color_md5="${fg_yellow}"
+        color_reset="${txt_reset}"
     else
         color_path=""
         color_info=""
