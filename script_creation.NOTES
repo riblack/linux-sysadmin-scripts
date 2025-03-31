@@ -1,9 +1,9 @@
 When I begin writing a new script then I start off with the following 4 lines:
 
-myfunction
-myfunction
-myfunction
-myfunction
+1. myfunction
+2. myfunction
+3. myfunction
+4. myfunction
 
 I then give the following purposes to the above 4 lines, in order:
 - unset -f
@@ -296,4 +296,9 @@ This structure and documentation aim to help new users understand Bash scripting
 
 In programming, a parameter is a variable listed within a function definition, acting as a placeholder for the data the function expects to receive when called, while an argument is the actual value that is passed to the function when it is invoked, essentially filling in the placeholder defined by the parameter; in simpler terms, parameters are defined in the function, while arguments are provided when calling the function. 
 
+
+
+
+
+sourcing a script should not cause it to run (ssh_disk_usage.sh)
 
