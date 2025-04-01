@@ -5,4 +5,3 @@ else
     echo -e "${RED}Footer template missing. Skipping...${RESET}"
     echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
-
