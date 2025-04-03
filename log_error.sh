@@ -16,7 +16,9 @@ log_error() {
 
     DATESTAMP_NOW=$(date "+%Y-%m-%d %H:%M:%S %a")
 
-    printf '[ERROR] [%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${HOSTNAME}" "$0" "$*" 1>&2
+    script_name=$(basename "${BASH_SOURCE[1]:-$0}")
+
+    printf '[ERROR] [%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${HOSTNAME}" "${script_name}" "$*" 1>&2
 
     return 1
 }

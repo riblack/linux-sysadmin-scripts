@@ -16,7 +16,9 @@ log_info() {
 
     DATESTAMP_NOW=$(date "+%Y-%m-%d %H:%M:%S %a")
 
-    printf '[INFO] [%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${HOSTNAME}" "$0" "$*"
+    script_name=$(basename "${BASH_SOURCE[1]:-$0}")
+
+    printf '[INFO] [%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${HOSTNAME}" "${script_name}" "$*"
 
     return 1
 }
