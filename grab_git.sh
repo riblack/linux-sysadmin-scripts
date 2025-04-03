@@ -33,17 +33,18 @@ grab_git() {
         return 1
     fi
 
-    # --- Ensure log file is ready ---
-    local log_file="/var/log/grab_git.log"
-    "${SCRIPT_DIR}/init_logfile.sh" "$log_file" root adm 0640 --quiet \
-        || "${SCRIPT_DIR}/init_logfile.sh" "$log_file" root adm 0640
+    # --- Ensure user-writable log file is ready ---
+    log_file="/var/log/grab_git_${USER}.log"
+    "${SCRIPT_DIR}/init_logfile.sh" "$log_file" "$USER" "$USER" 0644 --quiet \
+        || "${SCRIPT_DIR}/init_logfile.sh" "$log_file" "$USER" "$USER" 0644
 
     # --- Prepare clone paths ---
     local ts
     ts="$(date "+%Y%m%d_%H%M%S")"
     local dest1="$HOME/GITREPO/${github_user}/${repo_name}"
     local dest2="$HOME/git/${github_user}/${repo_name}"
-    local dest3="$(pwd)/${repo_name}"
+    local dest3
+    dest3="$(pwd)/${repo_name}"
 
     # --- Log the intent ---
     {
@@ -75,7 +76,7 @@ grab_git() {
         "$HOME/scripts") ;;
         "$HOME") ;;
         *)
-            read -p "Do you wish to download a copy in this directory ($current_dir)? " response
+            read -r -p "Do you wish to download a copy in this directory ($current_dir)? " response
             local char="${response:0:1}"
             char="${char,,}"
             if [[ "$char" == "y" ]]; then
