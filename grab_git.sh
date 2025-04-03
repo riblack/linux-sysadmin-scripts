@@ -4,8 +4,8 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 . "$SCRIPT_DIR/load_color_codes.def"
-
 . "$SCRIPT_DIR/log_error.sh"
+. "$SCRIPT_DIR/log_info.sh"
 
 grab_git() {
     local git_url="$1"
@@ -33,10 +33,14 @@ grab_git() {
         return 1
     fi
 
-    # --- Ensure user-writable log file is ready ---
-    log_file="/var/log/grab_git_${USER}.log"
-    "${SCRIPT_DIR}/init_logfile.sh" "$log_file" "$USER" "$USER" 0644 --quiet \
-        || "${SCRIPT_DIR}/init_logfile.sh" "$log_file" "$USER" "$USER" 0644
+    # --- Define safe, user-writable log file ---
+    LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/grab_git"
+    mkdir -p "$LOG_DIR"
+    log_file="$LOG_DIR/grab_git.log"
+
+    # --- Ensure log file is usable ---
+    "$SCRIPT_DIR/init_logfile.sh" "$log_file" "$USER" "$USER" 0644 --quiet \
+        || "$SCRIPT_DIR/init_logfile.sh" "$log_file" "$USER" "$USER" 0644
 
     # --- Prepare clone paths ---
     local ts
@@ -44,7 +48,7 @@ grab_git() {
     local dest1="$HOME/GITREPO/${github_user}/${repo_name}"
     local dest2="$HOME/git/${github_user}/${repo_name}"
     local dest3
-    dest3="$(pwd)/${repo_name}"
+    dest3="$(pwd)/${github_user}/${repo_name}"
 
     # --- Log the intent ---
     {
@@ -56,7 +60,7 @@ grab_git() {
     } | tee -a "$HOME/git/grab_git.log" "$HOME/GITREPO/grab_git.log" "$log_file"
 
     if [[ "$dry_run" == "yes" ]]; then
-        log_info "Dry run: skipping clone"
+        log_info "Dry run: skipping actual clone."
         return 0
     fi
 
