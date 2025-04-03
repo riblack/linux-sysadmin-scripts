@@ -24,7 +24,7 @@ grab_git() {
         return 1
     fi
 
-    # Validate and parse GitHub URL
+    # Parse GitHub URL
     if [[ "$git_url" =~ github\.com[:/]+([^/]+)/([^/.]+)(\.git)?$ ]]; then
         github_user="${BASH_REMATCH[1]}"
         repo_name="${BASH_REMATCH[2]}"
@@ -33,7 +33,7 @@ grab_git() {
         return 1
     fi
 
-    # --- Define safe, user-writable log file ---
+    # --- Define log file ---
     LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/grab_git"
     mkdir -p "$LOG_DIR"
     log_file="$LOG_DIR/grab_git.log"
@@ -42,13 +42,23 @@ grab_git() {
     "$SCRIPT_DIR/init_logfile.sh" "$log_file" "$USER" "$USER" 0644 --quiet \
         || "$SCRIPT_DIR/init_logfile.sh" "$log_file" "$USER" "$USER" 0644
 
-    # --- Prepare clone paths ---
     local ts
     ts="$(date "+%Y%m%d_%H%M%S")"
-    local dest1="$HOME/GITREPO/${github_user}/${repo_name}"
-    local dest2="$HOME/git/${github_user}/${repo_name}"
-    local dest3
-    dest3="$(pwd)/${github_user}/${repo_name}"
+
+    # --- Prepare clone paths ---
+    local base1="$HOME/GITREPO/${github_user}/${repo_name}"
+    local base2="$HOME/git/${github_user}/${repo_name}"
+    local base3
+    base3="$(pwd)/${github_user}/${repo_name}"
+
+    # Adjust paths if they already exist
+    local dest1="$base1"
+    local dest2="$base2"
+    local dest3="$base3"
+
+    [[ -d "$dest1" ]] && dest1="${base1}_${ts}"
+    [[ -d "$dest2" ]] && dest2="${base2}_${ts}"
+    [[ -d "$dest3" ]] && dest3="${base3}_${ts}"
 
     # --- Log the intent ---
     {
@@ -66,10 +76,9 @@ grab_git() {
 
     # --- Create directory structure and clone ---
     (
-        mkdir -p "$HOME/GITREPO/$github_user" "$HOME/git/$github_user"
-
-        cd "$HOME/GITREPO/$github_user" && git clone "$git_url"
-        cd "$HOME/git/$github_user" && git clone "$git_url"
+        mkdir -p "$(dirname "$dest1")" "$(dirname "$dest2")"
+        cd "$(dirname "$dest1")" && git clone "$git_url" "$(basename "$dest1")"
+        cd "$(dirname "$dest2")" && git clone "$git_url" "$(basename "$dest2")"
     )
 
     # --- Optional clone into current dir ---
@@ -84,7 +93,8 @@ grab_git() {
             local char="${response:0:1}"
             char="${char,,}"
             if [[ "$char" == "y" ]]; then
-                git clone "$git_url"
+                mkdir -p "$(dirname "$dest3")"
+                git clone "$git_url" "$dest3"
                 echo "$ts Cloned to: $dest3" >>"$log_file"
             fi
             ;;
