@@ -49,6 +49,24 @@ update_ubuntu ()
     }
 
     command -v yt-dlp && sudo yt-dlp -U
+
+#     Fix if repository changes some of its metadata:
+# 
+# E: Repository 'https://pkgs.zabbly.com/incus/lts-6.0 noble InRelease' changed its 'Origin' value from '. noble' to 'pkgs.zabbly.com'
+# E: Repository 'https://pkgs.zabbly.com/incus/lts-6.0 noble InRelease' changed its 'Label' value from '. noble' to 'incus-lts-6.0'
+# N: This must be accepted explicitly before updates for this repository can be applied. See apt-secure(8) manpage for details.
+# E: Repository 'https://pkgs.zabbly.com/incus/stable noble InRelease' changed its 'Origin' value from '. noble' to 'pkgs.zabbly.com'
+# E: Repository 'https://pkgs.zabbly.com/incus/stable noble InRelease' changed its 'Label' value from '. noble' to 'incus-stable'
+# N: This must be accepted explicitly before updates for this repository can be applied. See apt-secure(8) manpage for details.
+# 
+# This happens because the repository you’re using has changed some of its metadata (“Origin” and “Label”). By default, APT won’t automatically trust a repository if these fields change after you’ve added it. You must explicitly accept the changes before APT proceeds.
+# 
+# The quickest fix is to run apt-get update (or apt update on newer distributions) with the --allow-releaseinfo-change flags. For example:
+# 
+#     sudo apt-get update \
+#   --allow-releaseinfo-change-origin \
+#   --allow-releaseinfo-change-label
+
 }
 
 # Source footer if it exists
