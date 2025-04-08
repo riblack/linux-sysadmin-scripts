@@ -9,7 +9,7 @@ ssh_loop_vm_detect() {
 
     # Create timestamped output directory
     timestamp=$(date +%Y%m%d_%H%M%S)
-    output_dir="output_$timestamp"
+    output_dir="$HOME/.ssh/SYSTEMS/output_$timestamp"
     mkdir -p "$output_dir"
 
     while read -r host 0<&3; do
@@ -37,7 +37,7 @@ ssh_loop_vm_detect() {
 
         # Log just the hostname
         echo "$host" >>"$output_dir/output_${out_key}.out"
-    done 3< <(cat ~/.ssh/SYSTEMS/{physical,down,kvm,other,test}.txt)
+    done 3< <(cat "$HOME/.ssh/SYSTEMS/"{physical,down,kvm,other,test}.txt)
 }
 
 # Source footer if it exists
