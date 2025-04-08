@@ -7,6 +7,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ssh_loop_vm_detect() {
 
+    # Create timestamped output directory
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="output_$timestamp"
+    mkdir -p "$output_dir"
+
     while read -r host 0<&3; do
         echo "Checking $host..."
 
@@ -16,7 +21,7 @@ ssh_loop_vm_detect() {
 
         if [ $ssh_exit -ne 0 ] || [ -z "$output" ]; then
             echo -e "\e[1;31mTimeout or unreachable: $host\e[0m"
-            echo "$host" >>output_timeout.out
+            echo "$host" >>"$output_dir/output_timeout.out"
             continue
         fi
 
@@ -31,14 +36,14 @@ ssh_loop_vm_detect() {
         out_key=$(echo "$type_value" | awk -F: '{print $NF}')
 
         # Log just the hostname
-        echo "$host" >>"output_${out_key}.out"
-    done 3< <(cat ~/.ssh/SYSTEMS/{physical.txt,down.txt,kvm.txt})
+        echo "$host" >>"$output_dir/output_${out_key}.out"
+    done 3< <(cat ~/.ssh/SYSTEMS/{physical,down,kvm,other,test}.txt)
 }
 
 # Source footer if it exists
 if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
     source "$SCRIPT_DIR/bash_footer.template.live"
 else
-    echo -e "${red}Footer template missing. Skipping...${reset}"
+    echo -e "${RED}Footer template missing. Skipping...${RESET}"
     echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
