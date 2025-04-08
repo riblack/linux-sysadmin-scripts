@@ -3,12 +3,13 @@
 # Get the directory of the current script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+. "$SCRIPT_DIR/load_color_codes.def"
+
 . "$SCRIPT_DIR/debug.sh"
 . "$SCRIPT_DIR/normal.sh"
 . "$SCRIPT_DIR/move_with_suffix.sh"
 
-ytdl ()
-{
+ytdl() {
     debug set -xv
     VIDEOS_BASE_DIRECTORY=/data/videos
     VIDEO_DOWNLOADER_COMMAND=$(command -v yt-dlp)
@@ -42,41 +43,47 @@ ytdl ()
 
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--write-subs" "--write-auto-subs" "--sub-format" "vtt/srt/ass/best" "--sub-langs" "en,es,en.*,es.*,eo,epo,eo.*,epo.*")
 
+    # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--extractor-args" "youtube:player_client=web")
+
     # You must enable the above --downloader http:ffmpeg in order to use the following
     # You must put all ffmpeg arguments into one line (else the last ffmpeg args wins)
     # So, choose either one of the following, do not choose multiples:
 
     # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-bitexact") 		# ffmpeg -bitexact without verbose
-    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v verbose -bitexact")	# ffmpeg -bitexact with verbose
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v verbose -bitexact") # ffmpeg -bitexact with verbose
     # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v debug -bitexact")	# ffmpeg -bitexact with debug
     # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader-args" "ffmpeg:-v trace -bitexact")	# ffmpeg -bitexact with debug
 
-            VIDEOS_FILE_EXTENSIONS=$(cat <<'EOF'
+    VIDEOS_FILE_EXTENSIONS=$(
+        cat <<'EOF'
 .mp4
 EOF
-            )
+    )
 
-            AUDIOS_FILE_EXTENSIONS=$(cat <<'EOF'
+    AUDIOS_FILE_EXTENSIONS=$(
+        cat <<'EOF'
 .mp3
 .m4a
 EOF
-            )
+    )
 
-            THUMBNAIL_FILE_EXTENSIONS=$(cat <<'EOF'
+    THUMBNAIL_FILE_EXTENSIONS=$(
+        cat <<'EOF'
 .jpg
 .jpeg
 .png
 .webp
 EOF
-            )
+    )
 
-            SUBTITLE_FILE_EXTENSIONS=$(cat <<'EOF'
+    SUBTITLE_FILE_EXTENSIONS=$(
+        cat <<'EOF'
 .vtt
 .srt
 .ass
 .lrc
 EOF
-            )
+    )
 
     # Check if at least one argument is provided
     if [ $# -eq 0 ]; then
@@ -86,13 +93,13 @@ EOF
 
     # Determine the script name for logging purposes
     if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-        script_name="${FUNCNAME[0]}"  # Sourced: use the function name
+        script_name="${FUNCNAME[0]}" # Sourced: use the function name
     else
-        script_path="${0%/*}"  # Not sourced: get the directory part of the path
+        script_path="${0%/*}" # Not sourced: get the directory part of the path
         if [ -z "${script_path}" ]; then
-            script_path="."  # If no directory, use current directory
+            script_path="." # If no directory, use current directory
         fi
-        script_name="$(cd "${script_path}" && pwd)/${0##*/}"  # Full path with script name
+        script_name="$(cd "${script_path}" && pwd)/${0##*/}" # Full path with script name
     fi
 
     # Set parameters needed for when we will download a playlist
@@ -143,19 +150,19 @@ EOF
                     return 1
                 fi
 
-            ;;
+                ;;
             -b | --browser)
                 local USE_BROWSER=true
                 local BROWSER_VALUE=$2
                 shift
-                VIDEO_DOWNLOADER_COMMAND_ARGS+=("--cookies-from-browser" "$BROWSER_VALUE") # man yt-dlp
+                VIDEO_DOWNLOADER_COMMAND_ARGS+=("--cookies-from-browser" "$BROWSER_VALUE")   # man yt-dlp
                 PLAYLIST_SAVE_LIST_TO_FILE_ARGS+=("--cookies-from-browser" "$BROWSER_VALUE") # man yt-dlp
 
-            ;;
+                ;;
             *)
                 POSSIBLE_URLS+=("$1")
 
-            ;;
+                ;;
         esac
         shift
     done
@@ -167,7 +174,7 @@ EOF
     # Process each URL passed as an argument
     while [ -n "$1" ]; do
 
-        URL="$1"  # Get the first argument
+        URL="$1" # Get the first argument
         echo "Downloading video from: ${URL}"
 
         # Extract the domain from the URL for organizing downloads
@@ -196,36 +203,36 @@ EOF
             *youtube.com/shorts/*)
                 VIDEO_HANDLE="[${URL##*/}]"
                 echo "This is a youtube short, the id is the last field: ${VIDEO_HANDLE}" 1>&2
-            ;;
+                ;;
             *youtube.com/watch?v=*)
                 VIDEO_HANDLE="[${URL##*/}]"
                 VIDEO_HANDLE=$(echo "${VIDEO_HANDLE}" | sed -e 's,watch?v=,,' -e 's,&.*$,,')
                 echo "This is a regular youtube video, we picked out this as the video handle: ${VIDEO_HANDLE}" 1>&2
-            ;;
+                ;;
             *youtube.com/playlist?list=*)
                 # Nothing to do here, no video handle, the case statement further below will handle
                 # the needed processing the playlist as well as bypassing normal video download operations
                 # seeing that this is a playlist and not an individual video url
                 echo "This is a youtube playlist, we will process it as a playlist." 1>&2
-            ;;
+                ;;
             *www.instagram.com/reel/*)
                 VIDEO_HANDLE="${URL%\?*}"
                 VIDEO_HANDLE="${VIDEO_HANDLE%/}"
                 VIDEO_HANDLE="[${VIDEO_HANDLE##*/}]"
                 echo "This is an instagram reel video, the id is the last field: ${VIDEO_HANDLE}" 1>&2
-            ;;
+                ;;
             *www.instagram.com/*)
                 VIDEO_HANDLE="${URL%/}"
                 VIDEO_HANDLE="[${VIDEO_HANDLE##*/}]"
                 echo "This is an instagram video, the id is the last field: ${VIDEO_HANDLE}" 1>&2
-            ;;
+                ;;
 
             *)
                 VIDEO_HANDLE="${URL%\?*}"
                 VIDEO_HANDLE="${VIDEO_HANDLE%/}"
                 VIDEO_HANDLE="[${VIDEO_HANDLE##*/}]"
                 echo "No specific video handler built for this type of url so attempting to use last field of the URL: ${VIDEO_HANDLE}" 1>&2
-            ;;
+                ;;
         esac
 
         (
@@ -243,7 +250,7 @@ EOF
             YTDLP_VERSION=$(${VIDEO_DOWNLOADER_COMMAND} --version)
 
             # Add entry to the logfile
-            printf '[%s] [%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${script_name}" "${YTDLP_VERSION}" "${HOSTNAME}" "${URL}" >> "${DOMAIN_DOWNLOAD_LOG}"
+            printf '[%s] [%s] [%s] [%s] %s\n' "${DATESTAMP_NOW}" "${script_name}" "${YTDLP_VERSION}" "${HOSTNAME}" "${URL}" >>"${DOMAIN_DOWNLOAD_LOG}"
 
             case "${URL}" in
                 *youtube.com/playlist?list=*)
@@ -279,7 +286,7 @@ EOF
                     # Since this is a playlist then we do not perform regular tasks, just processed the playlist, so skipping to top of loop
                     exit 0
 
-                ;;
+                    ;;
 
             esac
 
@@ -289,7 +296,10 @@ EOF
 
             # Perform the downloads for this single URL
             normal set -xv
-            ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || { echo "Failed to download: ${URL}"; exit 1; }
+            ${VIDEO_DOWNLOADER_COMMAND} "${VIDEO_DOWNLOADER_COMMAND_ARGS[@]}" "${URL}" || {
+                echo "Failed to download: ${URL}"
+                exit 1
+            }
             normal set +xv
 
             # Get the earliest datestamp for this particular VIDEO_HANLE
@@ -320,7 +330,8 @@ EOF
             mkdir -p "${VIDEOS_DIRECTORY}"
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${VIDEOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
-            FIND_VIDEOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+            FIND_VIDEOS_COMMAND=$(
+                cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
 find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
@@ -347,7 +358,8 @@ EOF
             mkdir -p "${AUDIOS_DIRECTORY}"
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${AUDIOS_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
-            FIND_AUDIOS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+            FIND_AUDIOS_COMMAND=$(
+                cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
 find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
@@ -405,7 +417,8 @@ EOF
             fi
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${THUMBNAIL_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
-            FIND_THUMBNAILS_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+            FIND_THUMBNAILS_COMMAND=$(
+                cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
 find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
@@ -438,7 +451,8 @@ EOF
             fi
 
             FIND_EXTENSIONS_ARGUMENTS=$(echo "${SUBTITLE_FILE_EXTENSIONS}" | sed -e 's,.*,-name "*&",' -e '2,$s,^,-o ,' | tr '\n' ' ')
-            FIND_SUBTITLES_COMMAND=$(cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
+            FIND_SUBTITLES_COMMAND=$(
+                cat <<'EOF' | sed -e "s,\${VIDEO_HANDLE},${VIDEO_HANDLE},g" -e "s,\${FIND_EXTENSIONS_ARGUMENTS},${FIND_EXTENSIONS_ARGUMENTS},g"
 find . -maxdepth 1 -type f -name "*$(echo "${VIDEO_HANDLE}" | sed -e 's,\[,\\&,g' -e 's,\],\\&,g')*" -a \( ${FIND_EXTENSIONS_ARGUMENTS} \)
 EOF
             )
@@ -466,7 +480,7 @@ EOF
                     mkdir -p "${DOMAIN_VIDEOS_DIRECTORY}/$dir"
 
                     # Process files in the current source directory
-                    if compgen -G "${TMPDIR}/$dir/*" > /dev/null; then
+                    if compgen -G "${TMPDIR}/$dir/*" >/dev/null; then
                         for file in "${TMPDIR}/$dir/"*; do
                             move_with_suffix "$file" "${DOMAIN_VIDEOS_DIRECTORY}/$dir"
                         done
@@ -480,7 +494,7 @@ EOF
 
         )
 
-        shift  # Move to the next argument
+        shift # Move to the next argument
     done
 
     if [[ -n "${TMPDIR}" ]]; then
@@ -492,13 +506,13 @@ EOF
     else
         :
     fi
-debug set +xv
+    debug set +xv
 }
 
 # Source footer if it exists
 if [ -f "$SCRIPT_DIR/bash_footer.template.live" ]; then
     source "$SCRIPT_DIR/bash_footer.template.live"
 else
-    echo "Footer template missing. Skipping..."
+    echo -e "${RED}Footer template missing. Skipping...${RESET}"
+    echo -e "Please ensure 'bash_footer.template.live' exists in the same directory."
 fi
-
