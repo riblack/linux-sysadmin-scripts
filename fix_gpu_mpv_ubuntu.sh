@@ -91,7 +91,7 @@ else
     exit 0
 fi
 
-read -r -p "Do you want to install libva2 and related Mesa packages? [y/N] " RESP
+read -r -p "Do you want to optionally install libva2 and related Mesa packages? [y/N] " RESP
 case "$RESP" in
     [yY] | [yY][eE][sS])
         sudo apt update
@@ -103,7 +103,7 @@ case "$RESP" in
         ;;
 esac
 
-read -r -p "Do you want to install "extra" codecs (Ubunut's restricted extras and FFmpeg's extra libraries)? [y/N] " RESP
+read -r -p "Do you want to optionally install extra codecs (Ubunut's restricted extras and FFmpeg's extra libraries)? [y/N] " RESP
 case "$RESP" in
     [yY] | [yY][eE][sS])
         sudo apt update
