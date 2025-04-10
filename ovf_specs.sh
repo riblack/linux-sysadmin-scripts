@@ -7,7 +7,7 @@ ovf_specs() {
   [[ ! -f "$ovf" ]] && { echo "OVF file '$ovf' not found"; return 1; }
 
   local cleaned="/tmp/cleaned_ovf.xml"
-  local strip_xslt="./strip-ns.xslt"
+  local strip_xslt="./strip_ns.xslt"
   [[ ! -f "$strip_xslt" ]] && { echo "Missing XSLT: $strip_xslt"; return 1; }
 
   xmlstarlet tr "$strip_xslt" "$ovf" > "$cleaned"
