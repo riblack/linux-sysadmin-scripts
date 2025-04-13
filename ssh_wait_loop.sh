@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 . "$SCRIPT_DIR/load_color_codes.def"
 
-ssh-wait-loop() {
+ssh_wait_loop() {
 
     # === Usage ===
     # ./ssh-wait-loop.sh --host 192.168.1.100 --port 2222 --ssh-opts "-X -A -l user"
@@ -86,7 +86,7 @@ ssh-wait-loop() {
             break
         elif [[ $exit_code -eq 255 ]]; then
             echo -e "\n🔁 SSH dropped (code 255). Waiting to reconnect..."
-            sleep 2
+            sleep 15
         else
             echo -e "\n🚪 SSH exited normally (code $exit_code). Not reconnecting."
             break
