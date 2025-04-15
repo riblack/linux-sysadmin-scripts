@@ -3,7 +3,9 @@
 set -euo pipefail
 
 dry_run=false
-log_file="organize_files.log"
+LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/organize_by_date"
+mkdir -p "$LOG_DIR"
+log_file="$LOG_DIR/organize_files.log"
 
 # ANSI color codes
 RED='\033[0;31m'
