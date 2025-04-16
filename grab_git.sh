@@ -10,11 +10,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 grab_git() {
     local git_url="$1"
     shift || true
+
     local dry_run="no"
+    local include_forks="no"
+    local include_archived="no"
+    local max_repos=100
+    local github_token="${GITHUB_TOKEN:-}"
 
     for arg in "$@"; do
         case "$arg" in
             --dry-run) dry_run="yes" ;;
+            --include-forks) include_forks="yes" ;;
+            --include-archived) include_archived="yes" ;;
+            --max=*) max_repos="${arg#*=}" ;;
             *) ;;
         esac
     done
@@ -25,12 +33,55 @@ grab_git() {
     fi
 
     # Parse GitHub URL
-    if [[ "$git_url" =~ github\.com[:/]+([^/]+)/([^/]+)(\.git)?$ ]]; then
+    if [[ "$git_url" =~ github\.com[:/]+([^/]+)(/([^/]+))?(\.git)?$ ]]; then
         github_user="${BASH_REMATCH[1]}"
-        repo_name="${BASH_REMATCH[2]}"
+        repo_name="${BASH_REMATCH[3]}"
     else
         log_error "Unsupported or malformed GitHub URL: $git_url"
         return 1
+    fi
+
+    # --- Handle full user clone mode ---
+    if [[ -z "$repo_name" ]]; then
+        log_info "Fetching repositories for GitHub user: $github_user"
+
+        local api_url="https://api.github.com/users/${github_user}/repos?per_page=100"
+        local repo_data
+
+        if [[ -n "$github_token" ]]; then
+            repo_data=$(curl -s -H "Authorization: token $github_token" "$api_url")
+        else
+            repo_data=$(curl -s "$api_url")
+        fi
+
+        if [[ -z "$repo_data" ]]; then
+            log_error "Failed to fetch repository data for $github_user"
+            return 1
+        fi
+
+        local count=0
+
+        echo "$repo_data" | jq -r '.[] | "\(.name) \(.clone_url) \(.fork) \(.archived)"' \
+            | while read -r name clone_url is_fork is_archived; do
+                ((count++))
+                [[ "$count" -gt "$max_repos" ]] && break
+
+                if [[ "$is_fork" == "true" && "$include_forks" != "yes" ]]; then
+                    log_info "Skipping forked repo: $name"
+                    continue
+                fi
+
+                if [[ "$is_archived" == "true" && "$include_archived" != "yes" ]]; then
+                    log_info "Skipping archived repo: $name"
+                    continue
+                fi
+
+                log_info "[$count] Processing: $clone_url"
+                grab_git "$clone_url" "$@"
+                sleep 60 # Throttle
+            done
+
+        return 0
     fi
 
     # --- Define log file ---
@@ -45,7 +96,7 @@ grab_git() {
     local ts
     ts="$(date "+%Y%m%d_%H%M%S")"
 
-    # --- Prepare clone paths ---
+    # --- Prepare paths ---
     local base1="$HOME/GITREPO/${github_user}/${repo_name}"
     local base2="$HOME/git/${github_user}/${repo_name}"
     local base3
@@ -78,7 +129,9 @@ grab_git() {
     (
         mkdir -p "$(dirname "$dest1")" "$(dirname "$dest2")"
         cd "$(dirname "$dest1")" && git clone "$git_url" "$(basename "$dest1")"
+        sleep 60
         cd "$(dirname "$dest2")" && git clone "$git_url" "$(basename "$dest2")"
+        sleep 60
     )
 
     # --- Optional clone into current dir ---
