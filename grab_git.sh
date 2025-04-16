@@ -25,7 +25,7 @@ grab_git() {
     fi
 
     # Parse GitHub URL
-    if [[ "$git_url" =~ github\.com[:/]+([^/]+)/([^/.]+)(\.git)?$ ]]; then
+    if [[ "$git_url" =~ github\.com[:/]+([^/]+)/([^/]+)(\.git)?$ ]]; then
         github_user="${BASH_REMATCH[1]}"
         repo_name="${BASH_REMATCH[2]}"
     else
