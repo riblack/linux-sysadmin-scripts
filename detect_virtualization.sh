@@ -40,7 +40,7 @@ detect_environment() {
                 echo "TYPE=physical"
                 return
                 ;;
-            "kvm"|"qemu")
+            "kvm" | "qemu")
                 echo -e "${BLUE}Virtual machine: KVM/QEMU${RESET}"
                 echo "TYPE=virtual:kvm"
                 return
@@ -65,7 +65,7 @@ detect_environment() {
                 echo "TYPE=virtual:xen"
                 return
                 ;;
-            "lxc"|"lxc-libvirt")
+            "lxc" | "lxc-libvirt")
                 echo -e "${YELLOW}Running inside an LXC container${RESET}"
                 echo "TYPE=container:lxc"
                 return
@@ -96,11 +96,6 @@ detect_environment() {
                 echo "TYPE=virtual:vmware"
                 return
                 ;;
-            *"Red Hat"*"oVirt"*)
-                echo -e "${BLUE}Virtual machine: oVirt/KVM${RESET}"
-                echo "TYPE=virtual:ovirt"
-                return
-                ;;
             *"Microsoft Corporation"*)
                 echo -e "${BLUE}Virtual machine: Microsoft Hyper-V${RESET}"
                 echo "TYPE=virtual:hyperv"
@@ -121,12 +116,27 @@ detect_environment() {
                 echo "TYPE=virtual:bochs"
                 return
                 ;;
-            *)
-                echo -e "${GREEN}Physical machine${RESET}"
-                echo "TYPE=physical"
-                return
-                ;;
         esac
+
+        # More flexible fallback match
+        if echo "$sys_manuf $sys_product" | grep -qiE 'ovirt|red hat'; then
+            echo -e "${BLUE}Virtual machine: oVirt/KVM${RESET}"
+            echo "TYPE=virtual:ovirt"
+            return
+        fi
+
+        # Bonus: scan full dmidecode output for known virt strings
+        local dmidata
+        dmidata=$(sudo dmidecode 2>/dev/null)
+        if echo "$dmidata" | grep -qiE 'oVirt|KVM|QEMU'; then
+            echo -e "${BLUE}Virtual machine: Detected via full DMI scan${RESET}"
+            echo "TYPE=virtual:ovirt"
+            return
+        fi
+
+        echo -e "${GREEN}Physical machine${RESET}"
+        echo "TYPE=physical"
+        return
     fi
 
     echo -e "${RED}Unable to determine environment${RESET}"
@@ -134,4 +144,3 @@ detect_environment() {
 }
 
 detect_environment
-
