@@ -4,21 +4,20 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 cdz() {
-    ZIM_BASE_DIR="${HOME}/Notebooks/Notes/Journal"
-    JOURNAL="Journal"
-    NOW_YEAR=$(date +%Y)
-    NOW_MONTH=$(date +%Y/%m)
+    ZIM_BASE_FALLBACK="${HOME}/Notebooks/Notes"
+    ZIM_BASE_DIR="${ZIM_BASE_FALLBACK}/Journal"
     NOW_DAY=$(date +%Y/%m/%d)
-    ZIM_DIR="${HOME}/Notebooks/Notes/Journal/$(date +%Y/%m)"
+    NOW_MONTH=$(date +%Y/%m)
+    NOW_YEAR=$(date +%Y)
     ZIM_DIR="${ZIM_BASE_DIR}/$NOW_DAY"
     [ -d "${ZIM_DIR}" ] && cd "${ZIM_DIR}" && return
     ZIM_DIR="${ZIM_BASE_DIR}/$NOW_MONTH"
     [ -d "${ZIM_DIR}" ] && cd "${ZIM_DIR}" && return
     ZIM_DIR="${ZIM_BASE_DIR}/$NOW_YEAR"
     [ -d "${ZIM_DIR}" ] && cd "${ZIM_DIR}" && return
-    ZIM_DIR="${ZIM_BASE_DIR}/$JOURNAL"
-    [ -d "${ZIM_DIR}" ] && cd "${ZIM_DIR}" && return
     ZIM_DIR="${ZIM_BASE_DIR}"
+    [ -d "${ZIM_DIR}" ] && cd "${ZIM_DIR}" && return
+    ZIM_DIR="${ZIM_BASE_FALLBACK}"
     [ -d "${ZIM_DIR}" ] && cd "${ZIM_DIR}" && return
 }
 
