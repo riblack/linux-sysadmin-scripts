@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ytdl() {
     debug set -xv
     VIDEOS_BASE_DIRECTORY=/data/videos
-    VIDEO_DOWNLOADER_COMMAND=$(command -v yt-dlp)
+    VIDEO_DOWNLOADER_COMMAND=$(type -P yt-dlp)
 
     # Possible ffmpeg loglevels are numbers or:
     # -v quiet
@@ -29,6 +29,8 @@ ytdl() {
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--mtime")
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("--downloader" "http:ffmpeg")
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-k")
+    # VIDEO_DOWNLOADER_COMMAND_ARGS+=("--trim-filenames" "150")
+    VIDEO_DOWNLOADER_COMMAND_ARGS+=("--output" "'%(title).150B [%(id)s].%(ext)s'")
 
     # -x -k --audio-format mp3 --audio-quality 192K --format mp4
     VIDEO_DOWNLOADER_COMMAND_ARGS+=("-x")
